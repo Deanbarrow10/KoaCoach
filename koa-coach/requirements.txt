@@ -1,0 +1,9 @@
+Flask[async]>=2.2
+gunicorn
+python-dotenv
+twilio
+openai
+agentops
+aiohttp
+requests
+openai-agents

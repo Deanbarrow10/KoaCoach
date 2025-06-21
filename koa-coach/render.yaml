@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: therapist-backend
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: gunicorn -w 4 -b 0.0.0.0:10000 app:app
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AGENTOPS_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      - key: CRISIS_PHONE_NUMBER
+        sync: false
+      - key: EMAIL_ADDRESS
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: EMAIL_RECIPIENT
+        sync: false
