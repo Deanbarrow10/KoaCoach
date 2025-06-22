@@ -177,6 +177,11 @@ const TherapistChat = () => {
           }),
         }
       );
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Backend Error:", errorText);
+        throw new Error("Backend responded with an error");
+      }
 
       const aiReply = await response.text();
 
