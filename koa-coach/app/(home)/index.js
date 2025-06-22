@@ -23,9 +23,9 @@ function subScore(x) {
 
 export default function HomePage() {
   const router = useRouter();
-  const [score, setScore] = useState(36);
+  const [score, setScore] = useState(67);
   const [progress, setProgress] = useState(subScore(score));
-  const percentage = Math.min(((progress + 3) / 100) * 100, 100);
+  const percentage = Math.min((progress / 100) * 100, 100);
   const windowWidth = window.innerWidth;
   const windowLimit = 1000;
 
@@ -61,6 +61,7 @@ export default function HomePage() {
   console.log(fadeAnim);
   if (score > 100 && faded && (map.length == 3 || map.length == 4)) {
     setfaded(0);
+    setbarcolor("gray");
     setMap("fullWinter");
     setshouldFade(0);
   }
