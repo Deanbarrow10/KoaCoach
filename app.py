@@ -70,7 +70,7 @@ Type: {crisis_type}
 app = Flask(__name__)
 
 # API keys for openai
-os.environ["OPENAI_API_KEY"] = "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"
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
 
 web_search = WebSearchTool()
