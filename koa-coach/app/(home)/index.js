@@ -8,15 +8,28 @@ import {
   ScrollView,
   Image,
   progress,
+  Animated,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+
+function subScore(x) {
+  if (x - 100 > 0) {
+    return x - 100;
+  } else {
+    return x;
+  }
+}
 
 export default function HomePage() {
   const router = useRouter();
-  const [progress, setProgress] = useState(96);
-  const percentage = Math.min(((progress + 3) / 100) * 100, 100);
+  const [score, setScore] = useState(101);
+  const [progress, setProgress] = useState(subScore(score));
+  const percentage = Math.min((progress / 100) * 100, 100);
   const windowWidth = window.innerWidth;
+  const windowLimit = 1000;
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const mapImages = {
     full: require("../../assets/images/ForestMapEmptyPathFlagged.png"),
@@ -26,11 +39,40 @@ export default function HomePage() {
   };
 
   const [map, setMap] = useState("full");
+  const [barcolor, setbarcolor] = useState("green");
+  const [shouldFade, setshouldFade] = useState(0);
+  const [faded, setfaded] = useState(0);
 
-  if (windowWidth >= 1000 && map.length == 3) {
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: shouldFade ? 1 : 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) {
+        setfaded(1);
+      }
+    });
+  }, [shouldFade]);
+
+  if (score > 100 && shouldFade == 0 && (map.length == 3 || map.length == 4)) {
+    setshouldFade(1);
+  }
+  console.log(fadeAnim);
+  if (score > 100 && faded && (map.length == 3 || map.length == 4)) {
+    setfaded(0);
+    setMap("fullWinter");
+    setshouldFade(0);
+  }
+
+  if (windowWidth >= windowLimit && map.length == 3) {
     setMap("full");
-  } else if (windowWidth < 1000 && map.length == 4) {
+  } else if (windowWidth < windowLimit && map.length == 4) {
     setMap("min");
+  } else if (windowWidth >= windowLimit && map.length == 9) {
+    setMap("fullWinter");
+  } else if (windowWidth < windowLimit && map.length == 10) {
+    setMap("minWinter");
   }
 
   const [imageWidth, setImageWidth] = useState(0);
@@ -68,11 +110,22 @@ export default function HomePage() {
             <View
               style={[
                 styles.progressBar,
-                { width: `${percentage}%`, height: imageHeight },
+                {
+                  width: `${percentage}%`,
+                  height: imageHeight,
+                  backgroundColor: barcolor,
+                },
               ]}
             />
           </View>
+
+          <View style={styles.textOverlay}>
+            <Text style={styles.overlayText}>{score} WXP</Text>
+          </View>
+
           <Image source={mapImages[map]} style={styles.mapImage} />
+
+          <Animated.View style={[styles.blackOverlay, { opacity: fadeAnim }]} />
         </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -190,13 +243,41 @@ const styles = StyleSheet.create({
 
   mapImage: {
     width: "100%",
-    height: undefined, // use aspectRatio if you want
-    aspectRatio: 1, // or use actual image ratio
+    height: undefined,
+    aspectRatio: 1,
     borderRadius: 8,
   },
 
   progressBar: {
-    backgroundColor: "green", // or whatever your color is
     borderRadius: 8,
+  },
+
+  textOverlay: {
+    position: "absolute",
+    top: 10,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 10,
+  },
+
+  overlayText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+
+  blackOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "black",
+    zIndex: 5,
   },
 });
