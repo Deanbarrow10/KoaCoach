@@ -2,6 +2,7 @@ from agents import Agent, Runner, WebSearchTool, trace
 import asyncio
 import os
 from dotenv import load_dotenv
+load_dotenv()
 import json
 from flask import Flask, jsonify, request
 from twilio.rest import Client
@@ -69,8 +70,6 @@ Type: {crisis_type}
 # creates flask web server
 app = Flask(__name__)
 
-# API keys for openai
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
 
 web_search = WebSearchTool()
