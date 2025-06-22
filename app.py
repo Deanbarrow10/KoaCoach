@@ -1,5 +1,3 @@
-# tracks agent information
-import agentops
 from agents import Agent, Runner, WebSearchTool, trace
 import asyncio
 import os
@@ -71,13 +69,8 @@ Type: {crisis_type}
 # creates flask web server
 app = Flask(__name__)
 
-# API keys for openai and agentops
-os.environ["OPENAI_API_KEY"] = "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"
-AGENTOPS_API_KEY = 'fc01d380-a529-4ee7-880a-3c8ddd04305b'
-agentops.init(
-    api_key=AGENTOPS_API_KEY,
-    default_tags=['openai agents sdk']
-)
+# API keys for openai
+os.environ["OPENAI_API_KEY"] = "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"
 
 
 web_search = WebSearchTool()
