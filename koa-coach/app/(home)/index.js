@@ -23,9 +23,9 @@ function subScore(x) {
 
 export default function HomePage() {
   const router = useRouter();
-  const [score, setScore] = useState(101);
+  const [score, setScore] = useState(36);
   const [progress, setProgress] = useState(subScore(score));
-  const percentage = Math.min((progress / 100) * 100, 100);
+  const percentage = Math.min(((progress + 3) / 100) * 100, 100);
   const windowWidth = window.innerWidth;
   const windowLimit = 1000;
 
@@ -78,6 +78,8 @@ export default function HomePage() {
   const [imageWidth, setImageWidth] = useState(0);
   const [imageHeight, setImageHeight] = useState(0);
 
+  const koalaOffset = 20;
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -100,6 +102,7 @@ export default function HomePage() {
             setImageHeight(height);
           }}
         >
+          {/* Progress Bar */}
           <View
             style={{
               position: "absolute",
@@ -119,12 +122,30 @@ export default function HomePage() {
             />
           </View>
 
+          {/* Text Overlay */}
           <View style={styles.textOverlay}>
             <Text style={styles.overlayText}>{score} WXP</Text>
           </View>
 
+          {/* Map Image */}
           <Image source={mapImages[map]} style={styles.mapImage} />
 
+          {/* Koala overlay ON TOP of map but UNDER black overlay */}
+          <View
+            style={[
+              styles.koalaOverlayWrapper,
+              {
+                left: (percentage / 100) * imageWidth - koalaOffset,
+              },
+            ]}
+          >
+            <Image
+              source={require("../../assets/images/koala_on_map_crop.png")}
+              style={styles.koalaOverlay}
+            />
+          </View>
+
+          {/* Black Overlay on top of everything else */}
           <Animated.View style={[styles.blackOverlay, { opacity: fadeAnim }]} />
         </View>
 
@@ -279,5 +300,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: "black",
     zIndex: 5,
+  },
+  koalaOverlayWrapper: {
+    position: "absolute",
+    bottom: 25,
+    zIndex: 4,
+  },
+
+  koalaOverlay: {
+    width: 90,
+    height: 140,
+    resizeMode: "contain",
   },
 });
