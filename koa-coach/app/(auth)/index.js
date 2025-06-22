@@ -48,7 +48,7 @@ export default function AuthLandingPage() {
             <View style={styles.content}>
               <Image
                 style={styles.logo}
-                source={require("../../assets/images/main-logo.png")}
+                source={require("../../assets/images/icon.png")}
                 resizeMode="contain"
               />
             </View>
