@@ -23,13 +23,13 @@ export default function SignUpScreen() {
   const [secureTextEntry, setSecureTextEntry] = React.useState(true);
 
   const onSignUpPress = async () => {
-    const { error } = await supabase.auth.signUp({
+    const { data, signUpError } = await supabase.auth.signUp({
       email: emailAddress,
       password,
     });
 
-    if (error) {
-      Alert.alert("Sign Up Failed", error.message);
+    if (signUpError) {
+      Alert.alert("Sign Up Failed", signUpError.message);
     } else {
       Alert.alert(
         "Check your email",
@@ -37,7 +37,7 @@ export default function SignUpScreen() {
         [
           {
             text: "OK",
-            onPress: () => router.replace("/(auth)"),
+            onPress: async () => router.replace("/(auth)"),
           },
         ]
       );
@@ -54,6 +54,7 @@ export default function SignUpScreen() {
 
       if (signUpAttempt.status === "complete") {
         await setActive({ session: signUpAttempt.createdSessionId });
+
         router.replace("/(home)");
       } else {
         console.error(JSON.stringify(signUpAttempt, null, 2));

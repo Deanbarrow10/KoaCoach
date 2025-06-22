@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import XpDisplay from "../../components/xp_display";
 
 const MatchScreen = () => {
   const [showRosyCard, setShowRosyCard] = useState(false);
@@ -49,6 +50,9 @@ const MatchScreen = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.xpDisplay}>
+        <XpDisplay/>
+      </View>
       <View style={styles.noticeBox}>
         <Text style={styles.noticeText}>
           Currently onboarding therapists, updates coming soon!
@@ -139,9 +143,14 @@ const MatchScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 20,
     backgroundColor: "#fff",
     flex: 1,
+  },
+  xpDisplay: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingBottom: 8
   },
   matchButton: {
     backgroundColor: "#196315",

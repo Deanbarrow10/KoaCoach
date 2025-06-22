@@ -8,8 +8,13 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import { Context } from "../(home)/_layout";
+import { useContext } from "react";
+import XpDisplay from "../../components/xp_display";
 
 export default function HomePage() {
+  const { exp, setExp } = useContext(Context);
+
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -24,13 +29,18 @@ export default function HomePage() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Welcome to</Text>
+        <View style={styles.xpDisplay}>
+          <Text style={styles.welcomeText}>Welcome to</Text>
+          <XpDisplay/>
+        </View>
         <Text style={styles.appName}>KoaCoach</Text>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={24} color="#196315" />
         </TouchableOpacity>
       </View>
+      <View>
 
+      </View>
       <View style={styles.cardContainer}>
         <View style={styles.card}>
           <FontAwesome5 name="robot" size={40} color="#196315" />
@@ -66,9 +76,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  xpDisplay: {
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
   header: {
     padding: 20,
-    paddingTop: 60,
     backgroundColor: "#fff",
     flexDirection: "column",
   },

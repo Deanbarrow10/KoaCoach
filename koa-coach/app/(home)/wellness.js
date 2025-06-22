@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import XpDisplay from "../../components/xp_display";
 
 const { width } = Dimensions.get("window");
 
@@ -81,7 +82,10 @@ const WellnessScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Wellness Journey</Text>
+        <View style={styles.xpDisplay}>
+          <Text style={styles.headerTitle}>Wellness Journey</Text>
+          <XpDisplay/>
+        </View>        
         <Text style={styles.headerSubtitle}>
           Discover wisdom for better living
         </Text>
@@ -105,6 +109,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F8FF",
+  },
+  xpDisplay: {
+    flexDirection: "row",
+    justifyContent: "space-between"
   },
   header: {
     padding: 20,

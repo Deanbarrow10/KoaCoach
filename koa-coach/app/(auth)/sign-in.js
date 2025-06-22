@@ -21,14 +21,40 @@ export default function Page() {
   const [secureTextEntry, setSecureTextEntry] = React.useState(true);
 
   const onSignInPress = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: loginData, loginError } = await supabase.auth.signInWithPassword({
       email: emailAddress,
       password,
     });
 
-    if (error) {
+    if (loginError) {
       Alert.alert("Login failed", error.message);
     } else {
+      const { data: oldUserData, getOldXpError } = await supabase
+          .from("users")
+          .select("wxp, last_login")
+          .eq("uid", loginData.user.id)
+          .single();
+
+      if (getOldXpError) console.error("Error getting old wXP:", getOldXpError);
+
+      const prevLoginDate = new Date(oldUserData.last_login);
+      const currLoginDate = new Date();
+      var userInfo = { last_login: currLoginDate };
+      
+      if (!(prevLoginDate.getFullYear() == currLoginDate.getFullYear() &&
+          prevLoginDate.getMonth() == currLoginDate.getMonth() &&
+          prevLoginDate.getDate() == currLoginDate.getDate())) {
+        const oldWxp = oldUserData.wxp;
+        userInfo.wxp = oldWxp + 1;
+      }
+      
+      const { updateUserInfoError } = await supabase
+        .from("users")
+        .update(userInfo)
+        .eq("uid", loginData.user.id);
+
+      if (updateUserInfoError) console.error("Error updating wXP:", updateUserInfoError);
+
       router.replace("/(home)");
     }
   };
