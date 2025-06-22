@@ -81,9 +81,9 @@ const WellnessScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Wellness Journey</Text>
+        <Text style={styles.headerTitle}>Koa's Advice</Text>
         <Text style={styles.headerSubtitle}>
-          Discover wisdom for better living
+          Tips for improving your well-being
         </Text>
       </View>
 

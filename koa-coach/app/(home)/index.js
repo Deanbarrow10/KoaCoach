@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
@@ -33,20 +34,24 @@ export default function HomePage() {
 
       <View style={styles.cardContainer}>
         <View style={styles.card}>
-          <FontAwesome5 name="robot" size={40} color="#196315" />
-          <Text style={styles.cardTitle}>AI Support Assistant</Text>
+          <Image
+            source={require("../../assets/images/icon.png")}
+            style={styles.koalaIcon}
+            resizeMode="contain"
+          />
+
+          <Text style={styles.cardTitle}>Wellness Coach</Text>
           <Text style={styles.cardDescription}>
-            Get immediate support through our advanced AI voice agent. Available
-            24/7 for guidance and emotional support.
+            Koa is your personalized wellness coach, helping you achieve your
+            goals and improve your overall well-being.
           </Text>
         </View>
 
         <View style={styles.card}>
           <FontAwesome5 name="hand-holding-heart" size={40} color="#196315" />
-          <Text style={styles.cardTitle}>Personalized Matching</Text>
+          <Text style={styles.cardTitle}>Mindfulness</Text>
           <Text style={styles.cardDescription}>
-            Our intelligent system matches you with therapists who best fit your
-            unique needs and preferences.
+            Koa helps you stay present and focused, reducing stress and anxiety.
           </Text>
         </View>
 
@@ -54,7 +59,7 @@ export default function HomePage() {
           style={styles.startButton}
           onPress={() => router.push("/therapist")}
         >
-          <Text style={styles.startButtonText}>Find Your Perfect Match</Text>
+          <Text style={styles.startButtonText}>Talk to Koa!</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -132,5 +137,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  koalaIcon: {
+    width: 80,
+    height: 80,
+    marginBottom: 10,
   },
 });
