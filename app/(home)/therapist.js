@@ -34,6 +34,11 @@ const languageNames = {
   hi: "Hindi",
 };
 
+console.log(
+  "🔐 OpenAI Key Loaded:",
+  process.env.EXPO_PUBLIC_OPENAI_API_KEY?.slice(0, 10)
+);
+
 const TherapistChat = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");

@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request
 from twilio.rest import Client
 from sendmail import MailSender
 import re
+import openai
 
 # Twilio setup
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
@@ -15,6 +16,14 @@ auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 twilio_phone_number = os.getenv("TWILIO_PHONE_NUMBER")
 crisis_sms_recipient = os.getenv("CRISIS_PHONE_NUMBER")
 twilio_client = Client(account_sid, auth_token)
+
+# openAI
+
+# Load your OpenAI key from the environment and give it to the SDK
+openai.api_key = os.getenv("EXPO_PUBLIC_OPENAI_API_KEY")
+if not openai.api_key:
+    raise RuntimeError("❌ OPENAI_API_KEY not set in environment")
+
 
 def send_crisis_sms():
     try:

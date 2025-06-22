@@ -46,6 +46,7 @@
       "router": {
         "origin": false
       },
+      "EXPO_PUBLIC_OPENAI_API_KEY": "sk-...your_full_key_here",
       "eas": {
         "projectId": "91669049-d140-4ae1-848b-c93f9a431e19"
       }
