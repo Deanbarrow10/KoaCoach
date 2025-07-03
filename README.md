@@ -4,7 +4,7 @@ Meet Koa, your personalized wellness coach who makes self-care fun and rewarding
 
 ## 🎮 What is KoaCoach?
 
-KoaCoach gamifies your wellness routine by introducing a points-based system that makes healthy habits addictive in the best way possible. As you complete wellness activities, you earn wXP (wellness experience points) that unlock new features, challenges, and personalized coaching content.
+KoaCoach gamifies your wellness routine by introducing a points-based system that makes healthy habits fun in the best way possible. As you complete wellness activities, you earn wXP (wellness experience points) that unlock new features, challenges, and personalized coaching content.
 
 ### Key Features
 
