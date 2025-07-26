@@ -24,6 +24,7 @@ twilio_client = Client(account_sid, auth_token)
 # changing title real quick
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
+    print("🔍 Debug: OPENAI_API_KEY =", os.getenv("OPENAI_API_KEY"))
     raise RuntimeError("❌ OPENAI_API_KEY not set in environment")
 
 

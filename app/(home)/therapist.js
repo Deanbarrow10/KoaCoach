@@ -212,7 +212,15 @@ const TherapistChat = () => {
 
   const speakWithGoogleTTS = async (text) => {
     const TTS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY;
-    if (!TTS_API_KEY) return;
+    console.log(
+      "🔊 TTS Key Loaded:",
+      process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY?.slice(0, 10)
+    );
+
+    if (!TTS_API_KEY) {
+      console.error("🚨 TTS API Key not found");
+      return;
+    }
 
     const voiceSettings = {
       en: { languageCode: "en-US", name: "en-US-Chirp3-HD-Achernar" },
@@ -226,6 +234,7 @@ const TherapistChat = () => {
       voiceSettings[selectedLanguage] || voiceSettings.en;
 
     try {
+      console.log("Sending TTS request");
       const res = await fetch(
         `https://texttospeech.googleapis.com/v1/text:synthesize?key=${TTS_API_KEY}`,
         {
@@ -240,7 +249,10 @@ const TherapistChat = () => {
       );
 
       const result = await res.json();
-      if (!result.audioContent) return;
+      if (!result.audioContent) {
+        console.error("NO audio content returned:", result);
+        return;
+      }
 
       const path = FileSystem.documentDirectory + "tts_response.mp3";
       await FileSystem.writeAsStringAsync(path, result.audioContent, {
