@@ -204,7 +204,7 @@ const TherapistChat = () => {
       ]);
       await speakWithGoogleTTS(cleanedReply);
     } catch (error) {
-      console.error("Claude error:", error);
+      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }

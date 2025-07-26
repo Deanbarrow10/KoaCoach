@@ -20,7 +20,9 @@ twilio_client = Client(account_sid, auth_token)
 # openAI
 
 # Load your OpenAI key from the environment and give it to the SDK
-openai.api_key = os.getenv("EXPO_PUBLIC_OPENAI_API_KEY")
+
+# changing title real quick
+openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     raise RuntimeError("❌ OPENAI_API_KEY not set in environment")
 
