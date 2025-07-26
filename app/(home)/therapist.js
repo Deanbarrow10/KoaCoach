@@ -1,5 +1,9 @@
+/** therapist.js defines the AI voice-based therapist chat interface for the app.
+ *  it handles multilingual messaging, records voice, sends data to backend, detects safety issues,
+ *  and plays AI-generated responses with Google TTS
+ */
+
 import React, { useState, useEffect } from "react";
-import { Buffer } from "buffer";
 import {
   View,
   TextInput,
@@ -18,6 +22,7 @@ import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 
+// maps language codes to flag images
 const flagIcons = {
   en: require("../../assets/flags/uk.png"),
   es: require("../../assets/flags/spain.png"),
@@ -26,6 +31,7 @@ const flagIcons = {
   hi: require("../../assets/flags/india.png"),
 };
 
+// maps language codes to display names
 const languageNames = {
   en: "English",
   es: "Spanish",
@@ -40,6 +46,7 @@ console.log(
 );
 
 const TherapistChat = () => {
+  // manages state for chat messages and user interaction
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +58,10 @@ const TherapistChat = () => {
     pronouns: "",
   });
 
+  // initializes animation value for recording pulse effect
   const pulseAnim = useState(new Animated.Value(1))[0];
 
+  // animates pulse when recording is active
   useEffect(() => {
     if (isRecording) {
       Animated.loop(
@@ -76,10 +85,7 @@ const TherapistChat = () => {
     }
   }, [isRecording]);
 
-  const anthropic = new Anthropic({
-    apiKey: process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY,
-  });
-
+  // checks user input for concerning language
   const checkForConcerningContent = (message) => {
     const concerningKeywords = ["harm", "self-harm"];
     const lowercaseMessage = message.toLowerCase();
@@ -95,6 +101,7 @@ const TherapistChat = () => {
     }
   };
 
+  // extracts therapeutic interests and pronouns from message
   const extractUserPreferences = (message) => {
     const lowercaseMessage = message.toLowerCase();
     const clinicalInterests = [
@@ -135,6 +142,7 @@ const TherapistChat = () => {
     }
   };
 
+  // saves user preferences to local storage
   const storeUserPreferences = async (preferences) => {
     try {
       await AsyncStorage.setItem(
@@ -146,6 +154,7 @@ const TherapistChat = () => {
     }
   };
 
+  // loads user preferences when component mounts
   useEffect(() => {
     const loadUserPreferences = async () => {
       try {
@@ -160,6 +169,7 @@ const TherapistChat = () => {
     loadUserPreferences();
   }, []);
 
+  // sends message to backend and receives ai response
   const sendMessage = async (overrideText = null) => {
     const text = overrideText || inputText;
     if (!text.trim()) return;
@@ -210,6 +220,7 @@ const TherapistChat = () => {
     }
   };
 
+  // sends ai response to google tts and plays generated audio
   const speakWithGoogleTTS = async (text) => {
     const TTS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY;
     console.log(
@@ -266,6 +277,7 @@ const TherapistChat = () => {
     }
   };
 
+  // starts recording audio from mic
   const startRecording = async () => {
     try {
       await Audio.requestPermissionsAsync();
@@ -283,6 +295,7 @@ const TherapistChat = () => {
     }
   };
 
+  // stops audio recording and transcribes it using whisper
   const stopRecording = async () => {
     try {
       setIsRecording(false);
@@ -326,6 +339,7 @@ const TherapistChat = () => {
     }
   };
 
+  // renders a single chat message bubble
   const renderMessage = ({ item }) => (
     <View
       style={
@@ -336,6 +350,7 @@ const TherapistChat = () => {
     </View>
   );
 
+  // renders the full therapist chat screen UI
   return (
     <SafeAreaView style={styles.container}>
       <View

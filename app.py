@@ -1,33 +1,34 @@
+"""
+app.py defines the backend server for the AI therapist assistant. it creates a Flask API that routes messages to specialized agents including diagnostic, support, crisis, and matching agents. 
+it uses OpenAI's API and sends crisis alerts via SMS & email, and supports web search for therapist lookup.
+it processes incoming chat messages, evaluates user needs, and triggers escalation protocols when risk is detected.
+"""
+
+# loads environment variables
 from agents import Agent, Runner, WebSearchTool, trace
-import asyncio
 import os
-from dotenv import load_dotenv
-load_dotenv()
-import json
 from flask import Flask, jsonify, request
 from twilio.rest import Client
 from sendmail import MailSender
 import re
 import openai
+from dotenv import load_dotenv
+load_dotenv()
 
-# Twilio setup
+# sets up Twilio client using environment variables
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 twilio_phone_number = os.getenv("TWILIO_PHONE_NUMBER")
 crisis_sms_recipient = os.getenv("CRISIS_PHONE_NUMBER")
 twilio_client = Client(account_sid, auth_token)
 
-# openAI
-
-# Load your OpenAI key from the environment and give it to the SDK
-
-# changing title real quick
+# sets OpenAI API key from environment and checks presence
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     print("🔍 Debug: OPENAI_API_KEY =", os.getenv("OPENAI_API_KEY"))
     raise RuntimeError("❌ OPENAI_API_KEY not set in environment")
 
-
+# sends a basic SMS alert when a crisis is detected
 def send_crisis_sms():
     try:
         message = twilio_client.messages.create(
@@ -39,6 +40,7 @@ def send_crisis_sms():
     except Exception as e:
         print(f"[CRISIS SMS ERROR] {e}")
 
+# sends an email alert with detailed crisis information
 def send_crisis_email(name: str, crisis_type: str, user_message: str = None):
     try:
         email_user = os.getenv("EMAIL_ADDRESS")
@@ -82,11 +84,10 @@ Type: {crisis_type}
 # creates flask web server
 app = Flask(__name__)
 
-
-
+# initializes web search tool for therapist matching
 web_search = WebSearchTool()
 
-# 1. Diagnostic Agent
+# defines the diagnostic agent using DSM-5-TR criteria
 diagnostic_agent = Agent(
     name="diagnostic_agent",
     instructions="""
@@ -104,7 +105,7 @@ diagnostic_agent = Agent(
     """,
 )
 
-# 2. Therapist Matching Agent
+# defines the therapist matching agent that uses web search
 therapist_match_agent = Agent(
     name="therapist_match_agent",
     instructions="""
@@ -155,7 +156,7 @@ therapist_match_agent = Agent(
     tools=[web_search],
 )
 
-# 3. Emotional Support Agent
+# defines the emotional support agent for providing encouragement and planning
 emotional_support_agent = Agent(
     name="emotional_support_agent",
     instructions="""
@@ -185,7 +186,7 @@ emotional_support_agent = Agent(
     """,
 )
 
-# 4. Crisis Evaluation Agent
+# defines the crisis agent for emergency situations
 crisis_agent = Agent(
     name="crisis_agent",
     instructions="""
@@ -205,7 +206,7 @@ crisis_agent = Agent(
     """,
 )
 
-# --- Supervisor Therapist Agent ---
+# defines the supervisor agent that routes users to the appropriate specialist
 therapy_supervisor_agent = Agent(
     name="therapy_supervisor_agent",
     instructions="""
@@ -227,64 +228,41 @@ therapy_supervisor_agent = Agent(
 
 
 # ---- Routes ----
+
+# handles basic logging route for debugging
 @app.route('/api/log', methods=['GET'])
 async def log():
     x = request.args.get('x', default='Guest')
     print("[LOG]", x)
     return 'message received!'
 
-
-# @app.route('/api/therapist', methods=['GET'])
-# async def therapist():
-#     usermsg = request.args.get('usermsg', default='Guest')
-#     lang = request.args.get('lang', default='Guest')
-#     print(f"/api/therapist called with message:\n{usermsg}\nLanguage: {lang}")
-
-#     result = await Runner.run(
-#         therapy_supervisor_agent,
-#         "Respond in " + lang + "\n" + usermsg,
-#     )
-#     return result.final_output
-
-# @app.route('/api/therapist', methods=['POST'])
-# async def therapist():
-#     data  = request.get_json() or {}
-#     lang  = data.get('lang', 'Guest')
-#     messages = data.get('messages', [])
-
-#     # Convert message history to string
-#     chat_str = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
-#     prompt = f"Respond in {lang}:\n{chat_str}"
-
-#     result = await Runner.run(therapy_supervisor_agent, prompt)
-#     return result.final_output
-
+# handles therapist chat request and routes to proper agent
 @app.route('/api/therapist', methods=['POST'])
 async def therapist():
     data = request.get_json() or {}
     lang = data.get('lang', 'en')
     messages = data.get('messages', [])
 
-    # Combine chat history for prompting
+    # combines chat history into single string for prompt
     chat_str = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
     prompt = f"Respond in {lang}:\n{chat_str}"
 
-    # Run main assistant
+    # runs the supervisor agent to generate reply
     result = await Runner.run(therapy_supervisor_agent, prompt)
     response_text = result.final_output
 
-    # Ask OpenAI: extract user's full name ONLY
+    # uses LLM to extract user's name from conversation
     name_query = await Runner.run(
         therapy_supervisor_agent,
         chat_str + "\n\nExtract ONLY the most recent full name mentioned by the user. Respond with only the name and nothing else."
     )
     raw_name = name_query.final_output.strip()
 
-    # Extract a clean name (e.g. "Sarah Littlegirl")
+    # extracts clean full name from model response
     name_match = re.search(r"\b[A-Z][a-z]+(?: [A-Z][a-z]+)?\b", raw_name)
     name = name_match.group(0) if name_match else "Unknown User"
 
-    # Combine user messages to detect crisis
+    # checks for crisis-related keywords in user messages
     user_inputs = " ".join([m["content"] for m in messages if m["role"] == "user"])
     crisis_keywords = ["988", "suicidal", "kill myself", "self-harm", "hurt myself"]
 
@@ -298,7 +276,7 @@ async def therapist():
 
     return response_text
 
-
+# handles web search queries through agent tool
 @app.route('/api/web', methods=['GET'])
 async def web():
     query = request.args.get('query', default='Guest')
@@ -307,12 +285,8 @@ async def web():
     print("[WEB SEARCH RESULT]:", result.final_output)
     return jsonify({'message': result.final_output})
 
+# returns the posted data in a JSON response
 @app.route('/api/echo', methods=['POST'])
 def echo():
     data = request.json
     return jsonify({'you_sent': data})
-
-
-# no longer using built in flask server
-# if __name__ == '__main__':
-#    app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)
