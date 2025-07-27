@@ -4,7 +4,7 @@ Meet Koa, your personalized wellness coach who makes self-care fun and rewarding
 
 ## 🎮 What is KoaCoach?
 
-KoaCoach gamifies your wellness routine by introducing a points-based system that makes healthy habits fun in the best way possible. As you complete wellness activities, you earn wXP (wellness experience points) that unlock new features, challenges, and personalized coaching content.
+KoaCoach gamifies your wellness routine by introducing a points-based system that makes healthy habits addictive in the best way possible. As you complete wellness activities, you earn wXP (wellness experience points) that unlock new features, challenges, and personalized coaching content.
 
 ### Key Features
 
@@ -49,13 +49,10 @@ KoaCoach gamifies your wellness routine by introducing a points-based system tha
    - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
    - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
    - [Expo Go](https://expo.dev/go) app on your phone
-
+  
 ### Backend Setup
 
-1. **Navigate to root directory**
-   ```bash
-   python app.py
-   ```
+The Flask backend is hosted on Render for production deployment. The live API endpoints are automatically deployed when changes are pushed to the main branch.
 
 ## 🎯 How It Works
 
@@ -69,6 +66,18 @@ KoaCoach gamifies your wellness routine by introducing a points-based system tha
 
 This project uses [file-based routing](https://docs.expo.dev/router/introduction). Start developing by editing the files inside the **app** directory.
 
+### Get a fresh project
+When you're ready to start from scratch, run:
+```bash
+npm run reset-project
+```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory.
+
+## 🌟 Contributing
+
+We welcome contributions! Please feel free to submit a Pull Request.
+
 ## 📚 Learn More
 
 To learn more about the technologies used in this project:
@@ -77,6 +86,6 @@ To learn more about the technologies used in this project:
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 - [Flask documentation](https://flask.palletsprojects.com/): Learn about Flask web framework
 
-
+---
 
 *Start your wellness journey with Koa today! 🌱*
