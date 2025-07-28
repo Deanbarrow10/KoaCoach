@@ -243,9 +243,19 @@ async def therapist():
     lang = data.get('lang', 'en')
     messages = data.get('messages', [])
 
+    # handles interrupted TTS
+    interrupted = data.get('interrupted', False)
+
+
     # combines chat history into single string for prompt
     chat_str = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
-    prompt = f"Respond in {lang}:\n{chat_str}"
+
+    # handles interrupted TTS
+    if interrupted:
+        prompt = f"(The user just interrupted you. Respond concisely and naturally.) Respond in {lang}:\n{chat_str}"
+    else:
+        prompt = f"Respond in {lang}:\n{chat_str}"
+
 
     # runs the supervisor agent to generate reply
     result = await Runner.run(therapy_supervisor_agent, prompt)

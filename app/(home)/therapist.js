@@ -17,7 +17,6 @@ import {
   Easing,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Anthropic from "@anthropic-ai/sdk";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
@@ -44,6 +43,9 @@ console.log(
   "🔐 OpenAI Key Loaded:",
   process.env.EXPO_PUBLIC_OPENAI_API_KEY?.slice(0, 10)
 );
+
+// stores current TTS sound
+let currentTTSSound = null;
 
 const TherapistChat = () => {
   // manages state for chat messages and user interaction
@@ -189,6 +191,8 @@ const TherapistChat = () => {
           body: JSON.stringify({
             lang: languageNames[selectedLanguage],
             messages: [...messages, userMessage],
+            // handles interrupted TTS
+            interrupted: currentTTSSound !== null,
           }),
         }
       );
@@ -271,14 +275,32 @@ const TherapistChat = () => {
       });
 
       const { sound } = await Audio.Sound.createAsync({ uri: path });
+      // stores current TTS sound
+      currentTTSSound = sound;
       await sound.playAsync();
     } catch (e) {
       console.error("TTS error:", e);
     }
   };
 
+  // interrupts TTS if needed
+  const interruptTTSIfNeeded = async () => {
+    if (currentTTSSound) {
+      try {
+        await currentTTSSound.stopAsync();
+        await currentTTSSound.unloadAsync();
+        currentTTSSound = null;
+        console.log("🔇 Agent interrupted");
+      } catch (error) {
+        console.error("TTS interruption error:", error);
+      }
+    }
+  };
+
   // starts recording audio from mic
   const startRecording = async () => {
+    // interrupts TTS if needed
+    await interruptTTSIfNeeded();
     try {
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
