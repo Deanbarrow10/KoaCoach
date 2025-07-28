@@ -34,7 +34,7 @@ export default function Layout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="match"
         options={{
           title: "Match",
@@ -42,7 +42,7 @@ export default function Layout() {
             <FontAwesome6 name="people-arrows" color={color} size={size} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="journal"
         options={{
@@ -52,7 +52,6 @@ export default function Layout() {
           ),
         }}
       />
-      
     </Tabs>
   );
 }
