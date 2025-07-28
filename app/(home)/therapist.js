@@ -171,64 +171,14 @@ const TherapistChat = () => {
     loadUserPreferences();
   }, []);
 
-  // // sends message to backend and receives ai response
-  // const sendMessage = async (overrideText = null) => {
-  //   const text = overrideText || inputText;
-  //   if (!text.trim()) return;
-  //   setIsLoading(true);
-  //   const userMessage = { role: "user", content: text };
-  //   checkForConcerningContent(text);
-  //   extractUserPreferences(text);
-  //   setMessages((prev) => [...prev, userMessage]);
-  //   setInputText("");
-
-  //   try {
-  //     const response = await fetch(
-  //       "https://therapist-backend-9chu.onrender.com/api/therapist",
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({
-  //           lang: languageNames[selectedLanguage],
-  //           messages: [...messages, userMessage],
-  //           // handles interrupted TTS
-  //           interrupted: currentTTSSound !== null,
-  //         }),
-  //       }
-  //     );
-  //     if (!response.ok) {
-  //       const errorText = await response.text();
-  //       console.error("❌ Backend Error:", errorText);
-  //       throw new Error("Backend responded with an error");
-  //     }
-
-  //     const aiReply = await response.text();
-
-  //     const cleanedReply = aiReply
-  //       .replace(/\*\*/g, "")
-  //       .replace(/\[.*?\]\(.*?\)/g, "")
-  //       .replace(/https?:\/\/\S+/g, "")
-  //       .replace(/\(\s*\)/g, "")
-  //       .replace(/^###+\s*/gm, "")
-  //       .trim();
-
-  //     setMessages((prev) => [
-  //       ...prev,
-  //       { role: "assistant", content: cleanedReply },
-  //     ]);
-  //     await speakWithGoogleTTS(cleanedReply);
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
+  // sends message to backend and receives ai response
   const sendMessage = async (overrideText = null) => {
     const text = overrideText || inputText;
     if (!text.trim()) return;
     setIsLoading(true);
     const userMessage = { role: "user", content: text };
+    checkForConcerningContent(text);
+    extractUserPreferences(text);
     setMessages((prev) => [...prev, userMessage]);
     setInputText("");
 
@@ -240,43 +190,40 @@ const TherapistChat = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             lang: languageNames[selectedLanguage],
-            messages: [...messages, userMessage].slice(-5),
+            messages: [...messages, userMessage],
+            // handles interrupted TTS
             interrupted: currentTTSSound !== null,
           }),
         }
       );
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let finalText = "";
-      let currentBuffer = "";
-      let hasStartedSpeaking = false;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        finalText += chunk;
-        currentBuffer += chunk;
-
-        if (!hasStartedSpeaking && /[.!?]\\s/.test(currentBuffer)) {
-          hasStartedSpeaking = true;
-          speakWithGoogleTTS(currentBuffer.trim());
-          currentBuffer = "";
-        }
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Backend Error:", errorText);
+        throw new Error("Backend responded with an error");
       }
+
+      const aiReply = await response.text();
+
+      const cleanedReply = aiReply
+        .replace(/\*\*/g, "")
+        .replace(/\[.*?\]\(.*?\)/g, "")
+        .replace(/https?:\/\/\S+/g, "")
+        .replace(/\(\s*\)/g, "")
+        .replace(/^###+\s*/gm, "")
+        .trim();
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: finalText },
+        { role: "assistant", content: cleanedReply },
       ]);
+      await speakWithGoogleTTS(cleanedReply);
     } catch (error) {
-      console.error("Streaming error:", error);
+      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
   // sends ai response to google tts and plays generated audio
   const speakWithGoogleTTS = async (text) => {
     const TTS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY;
