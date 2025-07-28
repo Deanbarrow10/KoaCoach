@@ -7,7 +7,8 @@ it processes incoming chat messages, evaluates user needs, and triggers escalati
 # loads environment variables
 from agents import Agent, Runner, WebSearchTool, trace
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
+import time
 from twilio.rest import Client
 from sendmail import MailSender
 import re
@@ -237,54 +238,90 @@ async def log():
     return 'message received!'
 
 # handles therapist chat request and routes to proper agent
-@app.route('/api/therapist', methods=['POST'])
-async def therapist():
-    data = request.get_json() or {}
-    lang = data.get('lang', 'en')
-    messages = data.get('messages', [])
+# @app.route('/api/therapist', methods=['POST'])
+# async def therapist():
+#     data = request.get_json() or {}
+#     lang = data.get('lang', 'en')
+#     messages = data.get('messages', [])
 
-    # handles interrupted TTS
+#     # handles interrupted TTS
+#     interrupted = data.get('interrupted', False)
+
+
+#     # combines chat history into single string for prompt
+#     chat_str = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+
+#     # handles interrupted TTS
+#     if interrupted:
+#         prompt = f"(The user just interrupted you. Respond concisely and naturally.) Respond in {lang}:\n{chat_str}"
+#     else:
+#         prompt = f"Respond in {lang}:\n{chat_str}"
+
+
+#     # runs the supervisor agent to generate reply
+#     result = await Runner.run(therapy_supervisor_agent, prompt)
+#     response_text = result.final_output
+
+#     # uses LLM to extract user's name from conversation
+#     name_query = await Runner.run(
+#         therapy_supervisor_agent,
+#         chat_str + "\n\nExtract ONLY the most recent full name mentioned by the user. Respond with only the name and nothing else."
+#     )
+#     raw_name = name_query.final_output.strip()
+
+#     # extracts clean full name from model response
+#     name_match = re.search(r"\b[A-Z][a-z]+(?: [A-Z][a-z]+)?\b", raw_name)
+#     name = name_match.group(0) if name_match else "Unknown User"
+
+#     # checks for crisis-related keywords in user messages
+#     user_inputs = " ".join([m["content"] for m in messages if m["role"] == "user"])
+#     crisis_keywords = ["988", "suicidal", "kill myself", "self-harm", "hurt myself"]
+
+#     if any(kw in user_inputs.lower() for kw in crisis_keywords) or "988" in response_text:
+#         send_crisis_sms()
+#         send_crisis_email(
+#             name=name,
+#             crisis_type="Possible suicidal ideation",
+#             user_message=user_inputs
+#         )
+
+#     return response_text
+
+
+@app.route('/api/therapist', methods=['POST'])
+def therapist():
+    data = request.get_json()
+    lang = data.get('lang', 'English')
+    messages = data.get('messages', [])
     interrupted = data.get('interrupted', False)
 
+    # Format OpenAI chat history
+    chat_history = [
+        {"role": m["role"], "content": m["content"]} for m in messages
+    ]
 
-    # combines chat history into single string for prompt
-    chat_str = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
-
-    # handles interrupted TTS
+    # Optional: add a system prompt if interrupted
     if interrupted:
-        prompt = f"(The user just interrupted you. Respond concisely and naturally.) Respond in {lang}:\n{chat_str}"
-    else:
-        prompt = f"Respond in {lang}:\n{chat_str}"
+        chat_history.insert(0, {
+            "role": "system",
+            "content": "You were just interrupted. Respond briefly and naturally."
+        })
 
+    def generate():
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=chat_history,
+                stream=True
+            )
+            for chunk in completion:
+                if 'choices' in chunk:
+                    delta = chunk['choices'][0]['delta'].get('content', '')
+                    yield delta
+        except Exception as e:
+            yield f"[ERROR: {str(e)}]"
 
-    # runs the supervisor agent to generate reply
-    result = await Runner.run(therapy_supervisor_agent, prompt)
-    response_text = result.final_output
-
-    # uses LLM to extract user's name from conversation
-    name_query = await Runner.run(
-        therapy_supervisor_agent,
-        chat_str + "\n\nExtract ONLY the most recent full name mentioned by the user. Respond with only the name and nothing else."
-    )
-    raw_name = name_query.final_output.strip()
-
-    # extracts clean full name from model response
-    name_match = re.search(r"\b[A-Z][a-z]+(?: [A-Z][a-z]+)?\b", raw_name)
-    name = name_match.group(0) if name_match else "Unknown User"
-
-    # checks for crisis-related keywords in user messages
-    user_inputs = " ".join([m["content"] for m in messages if m["role"] == "user"])
-    crisis_keywords = ["988", "suicidal", "kill myself", "self-harm", "hurt myself"]
-
-    if any(kw in user_inputs.lower() for kw in crisis_keywords) or "988" in response_text:
-        send_crisis_sms()
-        send_crisis_email(
-            name=name,
-            crisis_type="Possible suicidal ideation",
-            user_message=user_inputs
-        )
-
-    return response_text
+    return Response(generate(), mimetype='text/plain')
 
 # handles web search queries through agent tool
 @app.route('/api/web', methods=['GET'])
@@ -300,3 +337,12 @@ async def web():
 def echo():
     data = request.json
     return jsonify({'you_sent': data})
+
+@app.route('/test/stream')
+def stream_test():
+    def generate():
+        yield "Hello"
+        import time
+        time.sleep(1)
+        yield " world."
+    return Response(generate(), mimetype='text/plain')
