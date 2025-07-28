@@ -1,3 +1,4 @@
+// Imports core React and React Native modules
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -8,10 +9,14 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
+
+// Icons from Expo's vector icon libraries
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 
+// Get screen width for responsive layouts if needed
 const { width } = Dimensions.get("window");
 
+// A single reusable card that represents one piece of advice
 const TeachingCard = ({ title, description, icon }) => (
   <TouchableOpacity style={styles.card}>
     <View style={styles.cardHeader}>
@@ -22,9 +27,12 @@ const TeachingCard = ({ title, description, icon }) => (
   </TouchableOpacity>
 );
 
+// Main component for the "Wellness" tab
 const WellnessScreen = () => {
+  // Used for switching between tabs, only one for now
   const [activeTab, setActiveTab] = useState("teachings");
 
+  // List of wellness advice with icons and short descriptions
   const teachings = [
     {
       title: "Love Deeply",
@@ -78,8 +86,10 @@ const WellnessScreen = () => {
     },
   ];
 
+  // Main return block with UI structure
   return (
     <SafeAreaView style={styles.container}>
+      {/* Top header text */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Koa's Advice</Text>
         <Text style={styles.headerSubtitle}>
@@ -87,11 +97,13 @@ const WellnessScreen = () => {
         </Text>
       </View>
 
+      {/* Scrollable container for all teaching cards */}
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.cardsContainer}>
+          {/* Render each teaching as a TeachingCard */}
           {teachings.map((teaching, index) => (
             <TeachingCard key={index} {...teaching} />
           ))}
@@ -101,6 +113,7 @@ const WellnessScreen = () => {
   );
 };
 
+// Styles for layout, spacing, and color
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -163,7 +176,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 3, // Android shadow
   },
   cardHeader: {
     flexDirection: "row",
@@ -183,4 +196,5 @@ const styles = StyleSheet.create({
   },
 });
 
+// Export screen component to be used in the app's navigation
 export default WellnessScreen;

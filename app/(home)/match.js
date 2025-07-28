@@ -1,4 +1,6 @@
 // match.js
+
+// Import necessary React and React Native components
 import React, { useState } from "react";
 import {
   View,
@@ -13,20 +15,38 @@ import {
   Platform,
   Pressable,
 } from "react-native";
+
+// Navigation hook from Expo Router
 import { useRouter } from "expo-router";
+
+// Importing icon library
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
+// Main functional component for therapist matching screen
 const MatchScreen = () => {
+  // State to control visibility of the matched therapist card
   const [showRosyCard, setShowRosyCard] = useState(false);
+
+  // State to control visibility of the message modal
   const [showMessageModal, setShowMessageModal] = useState(false);
+
+  // Array of messages exchanged between user and "Rosy"
   const [messages, setMessages] = useState([]);
+
+  // Text input state for composing new messages
   const [inputText, setInputText] = useState("");
+
+  // Router instance for navigation (unused here but available)
   const router = useRouter();
 
+  // Called when the user taps "Match Me" button
+  // Reveals the card with therapist information
   const handleMatch = () => {
     setShowRosyCard(true);
   };
 
+  // Called when user sends a message
+  // Appends user's message and a default Rosy reply
   const handleSend = () => {
     if (inputText.trim()) {
       const userMsg = { role: "user", content: inputText.trim() };
@@ -35,10 +55,11 @@ const MatchScreen = () => {
         content: "Dr. Emily Kelce will respond shortly...",
       };
       setMessages((prev) => [...prev, userMsg, rosyReply]);
-      setInputText("");
+      setInputText(""); // Clear input field after sending
     }
   };
 
+  // Renders a single message bubble depending on sender (user or Rosy)
   const renderMessage = ({ item }) => (
     <View
       style={item.role === "user" ? styles.userMessage : styles.rosyMessage}
@@ -47,26 +68,34 @@ const MatchScreen = () => {
     </View>
   );
 
+  // Main return block with full screen layout
   return (
     <View style={styles.container}>
+      {/* Notification box to indicate onboarding status */}
       <View style={styles.noticeBox}>
         <Text style={styles.noticeText}>
           Currently onboarding therapists, updates coming soon!
         </Text>
       </View>
+
+      {/* Button that initiates the match process */}
       <TouchableOpacity style={styles.matchButton} onPress={handleMatch}>
         <Text style={styles.matchButtonText}>Match Me</Text>
       </TouchableOpacity>
 
+      {/* Conditional rendering of therapist card after matching */}
       {showRosyCard && (
         <TouchableOpacity
           style={styles.rosyCard}
           onPress={() => setShowMessageModal(true)}
         >
+          {/* Therapist profile picture */}
           <Image
             source={require("../../assets/images/match-therapist.png")}
             style={styles.rosyImage}
           />
+
+          {/* Therapist details */}
           <View style={styles.rosyInfo}>
             <Text style={styles.name}>Dr. Emily Kelce</Text>
             <Text style={styles.meta}>
@@ -88,12 +117,14 @@ const MatchScreen = () => {
         </TouchableOpacity>
       )}
 
+      {/* Modal popup for message-based interaction with therapist */}
       <Modal
         visible={showMessageModal}
         animationType="slide"
         transparent={false}
       >
         <View style={{ flex: 1 }}>
+          {/* Close button for modal */}
           <Pressable
             onPress={() => setShowMessageModal(false)}
             style={{ padding: 22, backgroundColor: "#eee" }}
@@ -108,16 +139,21 @@ const MatchScreen = () => {
               Close
             </Text>
           </Pressable>
+
+          {/* Message interaction view with keyboard-safe behavior */}
           <KeyboardAvoidingView
             style={styles.messageModal}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
+            {/* Scrollable list of messages */}
             <FlatList
               data={messages}
               renderItem={renderMessage}
               keyExtractor={(_, index) => index.toString()}
               style={styles.messageList}
             />
+
+            {/* Message input area */}
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
@@ -126,6 +162,7 @@ const MatchScreen = () => {
                 placeholder="Type your message..."
                 multiline
               />
+              {/* Send button with icon */}
               <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
                 <MaterialCommunityIcons name="send" size={20} color="#fff" />
               </TouchableOpacity>
@@ -137,6 +174,7 @@ const MatchScreen = () => {
   );
 };
 
+// StyleSheet for layout and UI design
 const styles = StyleSheet.create({
   container: {
     padding: 16,
@@ -241,7 +279,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: "#FFC107",
   },
-
   noticeText: {
     color: "#856404",
     fontSize: 14,
@@ -249,4 +286,5 @@ const styles = StyleSheet.create({
   },
 });
 
+// Exporting the MatchScreen component for use in the app
 export default MatchScreen;

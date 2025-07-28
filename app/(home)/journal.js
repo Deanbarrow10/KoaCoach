@@ -15,16 +15,17 @@ import moment from "moment";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const Journal = () => {
-  const [entries, setEntries] = useState([]);
-  const [selectedEntry, setSelectedEntry] = useState(null);
-  const [newText, setNewText] = useState("");
+  const [entries, setEntries] = useState([]); // all journal entries
+  const [selectedEntry, setSelectedEntry] = useState(null); // currently selected entry for editing
+  const [newText, setNewText] = useState(""); // text for new or edited entry
   const dropdownHeight = useRef(new Animated.Value(0)).current;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
-    fetchEntries();
+    fetchEntries(); // fetch entries on mount
   }, []);
 
+  // Fetch journal entries for current user
   const fetchEntries = async () => {
     const {
       data: { user },
@@ -46,6 +47,7 @@ const Journal = () => {
     else setEntries(data);
   };
 
+  // Save or update journal entry
   const saveEntry = async () => {
     const {
       data: { user },
@@ -61,25 +63,19 @@ const Journal = () => {
       data: { session },
     } = await supabase.auth.getSession();
 
-    console.log("Session:", session);
-    console.log("User ID for insert:", user?.id);
-    console.log("👤 supabase.auth.getUser() → user.id:", user?.id);
-    console.log(
-      "🔐 supabase.auth.getSession() → session.user.id:",
-      session?.user?.id
-    );
-
     const timestamp = new Date().toISOString();
 
     if (selectedEntry) {
+      // Update existing entry
       const { error } = await supabase
         .from("journal_entries")
         .update({ text: newText })
         .eq("id", selectedEntry.id)
-        .eq("user_id", user.id); // only update if user owns it
+        .eq("user_id", user.id); // ensure user owns entry
 
       if (error) console.error("Error updating entry:", error.message);
     } else {
+      // Insert new entry
       const { error } = await supabase.from("journal_entries").insert([
         {
           text: newText,
@@ -91,16 +87,19 @@ const Journal = () => {
       if (error) console.error("Error saving entry:", error.message);
     }
 
+    // Reset state after save
     setNewText("");
     setSelectedEntry(null);
     fetchEntries();
   };
 
+  // Load entry content into editor
   const selectEntry = (entry) => {
     setSelectedEntry(entry);
     setNewText(entry.text);
   };
 
+  // Toggle dropdown animation for past entries
   const toggleDropdown = () => {
     const toValue = isDropdownOpen ? 0 : 300;
     Animated.timing(dropdownHeight, {
@@ -111,6 +110,7 @@ const Journal = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  // Render individual journal entry preview
   const renderEntryItem = ({ item }) => (
     <TouchableOpacity
       style={[
@@ -126,6 +126,7 @@ const Journal = () => {
     </TouchableOpacity>
   );
 
+  // Clear editor for new entry
   const handleNewEntry = () => {
     setSelectedEntry(null);
     setNewText("");
@@ -133,6 +134,7 @@ const Journal = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Toggle for dropdown list of past entries */}
       <TouchableOpacity onPress={toggleDropdown} style={styles.dropdownToggle}>
         <Ionicons
           name={isDropdownOpen ? "chevron-up" : "chevron-down"}
@@ -144,6 +146,7 @@ const Journal = () => {
         </Text>
       </TouchableOpacity>
 
+      {/* Animated dropdown panel */}
       <Animated.View style={[styles.dropdownPanel, { height: dropdownHeight }]}>
         <FlatList
           data={entries}
@@ -152,6 +155,7 @@ const Journal = () => {
         />
       </Animated.View>
 
+      {/* Entry editor UI */}
       <View style={styles.editor}>
         <View style={styles.actionRow}>
           <TouchableOpacity
@@ -185,93 +189,26 @@ const Journal = () => {
   );
 };
 
+export default Journal;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: "#fff",
+    padding: 16,
   },
-  dropdownToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    backgroundColor: "#EAF8EA",
-  },
-  dropdownLabel: {
-    marginLeft: 6,
-    fontSize: 16,
-    color: "#196315",
-    fontWeight: "500",
-  },
-  dropdownPanel: {
-    overflow: "hidden",
-    backgroundColor: "#F5F5F7",
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
-    paddingHorizontal: 16,
-  },
-  entryItem: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderColor: "#eee",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  selectedEntry: {
-    backgroundColor: "#DFF6DD",
-    borderRadius: 6,
-    paddingHorizontal: 6,
-  },
-  entryDate: {
-    fontSize: 14,
-    color: "#333",
-  },
-  editor: {
-    flex: 1,
-    padding: 20,
-  },
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
     marginBottom: 12,
   },
-  newEntryButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EAF8EA",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+  entry: {
+    backgroundColor: "#f2f2f2",
+    padding: 12,
     borderRadius: 8,
+    marginBottom: 10,
   },
-  newEntryText: {
-    color: "#196315",
-    marginLeft: 6,
-    fontWeight: "500",
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 14,
+  entryText: {
     fontSize: 16,
-    textAlignVertical: "top",
-    borderRadius: 12,
-    backgroundColor: "#fff",
-    minHeight: 200,
-  },
-  saveButton: {
-    backgroundColor: "#196315",
-    padding: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 16,
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
+    color: "#333",
   },
 });
-
-export default Journal;

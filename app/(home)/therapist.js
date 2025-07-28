@@ -3,6 +3,7 @@
  *  and plays AI-generated responses with Google TTS
  */
 
+// React and React Native core imports
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -16,13 +17,23 @@ import {
   Animated,
   Easing,
 } from "react-native";
+
+// Local storage for user preferences
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Anthropic SDK imported (not used in this file but likely relevant to future features)
 import Anthropic from "@anthropic-ai/sdk";
+
+// Expo audio recording and playback
 import { Audio } from "expo-av";
+
+// For saving and uploading files like audio recordings
 import * as FileSystem from "expo-file-system";
+
+// Icons used in the UI
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 
-// maps language codes to flag images
+// Mapping of language codes to flag icons
 const flagIcons = {
   en: require("../../assets/flags/uk.png"),
   es: require("../../assets/flags/spain.png"),
@@ -31,7 +42,7 @@ const flagIcons = {
   hi: require("../../assets/flags/india.png"),
 };
 
-// maps language codes to display names
+// Mapping of language codes to display names
 const languageNames = {
   en: "English",
   es: "Spanish",
@@ -40,28 +51,40 @@ const languageNames = {
   hi: "Hindi",
 };
 
+// Log OpenAI key prefix to ensure it's loaded from env
 console.log(
   "🔐 OpenAI Key Loaded:",
   process.env.EXPO_PUBLIC_OPENAI_API_KEY?.slice(0, 10)
 );
 
+// Main functional component for therapist chat
 const TherapistChat = () => {
-  // manages state for chat messages and user interaction
+  // Chat conversation state
   const [messages, setMessages] = useState([]);
+
+  // Input text typed by user
   const [inputText, setInputText] = useState("");
+
+  // Loading state while waiting for response
   const [isLoading, setIsLoading] = useState(false);
+
+  // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState(null);
+
+  // Selected language for interaction
   const [selectedLanguage, setSelectedLanguage] = useState("en");
+
+  // Persisted user info (e.g. pronouns, interests)
   const [userPreferences, setUserPreferences] = useState({
     interests: [],
     pronouns: "",
   });
 
-  // initializes animation value for recording pulse effect
+  // Animated value for pulsing mic when recording
   const pulseAnim = useState(new Animated.Value(1))[0];
 
-  // animates pulse when recording is active
+  // Start or reset pulse animation when recording toggled
   useEffect(() => {
     if (isRecording) {
       Animated.loop(
@@ -85,7 +108,7 @@ const TherapistChat = () => {
     }
   }, [isRecording]);
 
-  // checks user input for concerning language
+  // Detects if user message contains keywords of concern
   const checkForConcerningContent = (message) => {
     const concerningKeywords = ["harm", "self-harm"];
     const lowercaseMessage = message.toLowerCase();
@@ -101,7 +124,7 @@ const TherapistChat = () => {
     }
   };
 
-  // extracts therapeutic interests and pronouns from message
+  // Parses message for interests or pronouns and updates stored preferences
   const extractUserPreferences = (message) => {
     const lowercaseMessage = message.toLowerCase();
     const clinicalInterests = [
@@ -142,7 +165,7 @@ const TherapistChat = () => {
     }
   };
 
-  // saves user preferences to local storage
+  // Saves preferences to persistent storage
   const storeUserPreferences = async (preferences) => {
     try {
       await AsyncStorage.setItem(
@@ -154,7 +177,7 @@ const TherapistChat = () => {
     }
   };
 
-  // loads user preferences when component mounts
+  // Load preferences from storage on initial mount
   useEffect(() => {
     const loadUserPreferences = async () => {
       try {
@@ -169,14 +192,19 @@ const TherapistChat = () => {
     loadUserPreferences();
   }, []);
 
-  // sends message to backend and receives ai response
+  // Sends a user message to backend and plays AI response
   const sendMessage = async (overrideText = null) => {
     const text = overrideText || inputText;
     if (!text.trim()) return;
     setIsLoading(true);
+
     const userMessage = { role: "user", content: text };
+
+    // Safety + personalization checks
     checkForConcerningContent(text);
     extractUserPreferences(text);
+
+    // Add user message to chat view
     setMessages((prev) => [...prev, userMessage]);
     setInputText("");
 
@@ -192,6 +220,7 @@ const TherapistChat = () => {
           }),
         }
       );
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Backend Error:", errorText);
@@ -200,6 +229,7 @@ const TherapistChat = () => {
 
       const aiReply = await response.text();
 
+      // Strip markdown and links from raw model output
       const cleanedReply = aiReply
         .replace(/\*\*/g, "")
         .replace(/\[.*?\]\(.*?\)/g, "")
@@ -212,6 +242,7 @@ const TherapistChat = () => {
         ...prev,
         { role: "assistant", content: cleanedReply },
       ]);
+
       await speakWithGoogleTTS(cleanedReply);
     } catch (error) {
       console.error("Error:", error);
@@ -220,7 +251,7 @@ const TherapistChat = () => {
     }
   };
 
-  // sends ai response to google tts and plays generated audio
+  // Uses Google Cloud TTS API to convert text to audio
   const speakWithGoogleTTS = async (text) => {
     const TTS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY;
     console.log(
@@ -245,7 +276,6 @@ const TherapistChat = () => {
       voiceSettings[selectedLanguage] || voiceSettings.en;
 
     try {
-      console.log("Sending TTS request");
       const res = await fetch(
         `https://texttospeech.googleapis.com/v1/text:synthesize?key=${TTS_API_KEY}`,
         {
@@ -277,7 +307,7 @@ const TherapistChat = () => {
     }
   };
 
-  // starts recording audio from mic
+  // Starts microphone recording
   const startRecording = async () => {
     try {
       await Audio.requestPermissionsAsync();
@@ -295,7 +325,7 @@ const TherapistChat = () => {
     }
   };
 
-  // stops audio recording and transcribes it using whisper
+  // Stops recording and sends transcription to chat backend
   const stopRecording = async () => {
     try {
       setIsRecording(false);
@@ -319,6 +349,7 @@ const TherapistChat = () => {
           },
         }
       );
+
       const transcript = uploadResult.body;
 
       if (
@@ -339,7 +370,7 @@ const TherapistChat = () => {
     }
   };
 
-  // renders a single chat message bubble
+  // Renders single chat message bubble
   const renderMessage = ({ item }) => (
     <View
       style={
@@ -350,9 +381,10 @@ const TherapistChat = () => {
     </View>
   );
 
-  // renders the full therapist chat screen UI
+  // Renders full UI
   return (
     <SafeAreaView style={styles.container}>
+      {/* Language switcher using flags */}
       <View
         style={{
           flexDirection: "row",
@@ -381,12 +413,15 @@ const TherapistChat = () => {
         ))}
       </View>
 
+      {/* Chat history */}
       <FlatList
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(_, index) => index.toString()}
         style={styles.messageList}
       />
+
+      {/* Input + send + voice controls */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -406,6 +441,8 @@ const TherapistChat = () => {
             <FontAwesome name="send" size={20} color="#fff" />
           )}
         </TouchableOpacity>
+
+        {/* Voice record button with animation */}
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
           <TouchableOpacity
             style={[
@@ -425,55 +462,59 @@ const TherapistChat = () => {
   );
 };
 
+
+export default TherapistChat;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  messageList: { flex: 1, padding: 16, marginTop: 10 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 10,
+  },
+  messageList: {
+    flex: 1,
+    marginTop: 10,
+  },
   userMessage: {
-    backgroundColor: "#07db78",
     alignSelf: "flex-end",
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 8,
+    backgroundColor: "#DCF8C6",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 5,
     maxWidth: "80%",
   },
   assistantMessage: {
-    backgroundColor: "#E9E9EB",
     alignSelf: "flex-start",
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 8,
+    backgroundColor: "#E9E9EB",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 5,
     maxWidth: "80%",
   },
-  messageText: { color: "#000", fontSize: 16 },
+  messageText: {
+    fontSize: 16,
+  },
   inputContainer: {
     flexDirection: "row",
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#E9E9EB",
     alignItems: "center",
+    paddingVertical: 10,
   },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "#E9E9EB",
-    borderRadius: 20,
-    padding: 12,
-    marginRight: 8,
+    backgroundColor: "#f2f2f2",
+    borderRadius: 10,
+    padding: 10,
     fontSize: 16,
+    maxHeight: 100,
   },
   sendButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#196315",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    height: 40,
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 10,
+    marginLeft: 8,
   },
   sendButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
   },
 });
-
-export default TherapistChat;

@@ -2,11 +2,13 @@ import { Tabs } from "expo-router/tabs";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { FontAwesome6 } from "@expo/vector-icons";
 
+// Bottom tab layout for app navigation
 export default function Layout() {
   return (
     <Tabs
       screenOptions={{ tabBarActiveTintColor: "#196315", headerShown: false }}
     >
+      {/* Home tab */}
       <Tabs.Screen
         name="index"
         options={{
@@ -16,6 +18,7 @@ export default function Layout() {
           ),
         }}
       />
+      {/* Wellness tab */}
       <Tabs.Screen
         name="wellness"
         options={{
@@ -25,6 +28,7 @@ export default function Layout() {
           ),
         }}
       />
+      {/* Therapist tab */}
       <Tabs.Screen
         name="therapist"
         options={{
@@ -34,6 +38,7 @@ export default function Layout() {
           ),
         }}
       />
+      {/* Match tab */}
       <Tabs.Screen
         name="match"
         options={{
@@ -43,6 +48,7 @@ export default function Layout() {
           ),
         }}
       />
+      {/* Journal tab */}
       <Tabs.Screen
         name="journal"
         options={{
@@ -52,7 +58,6 @@ export default function Layout() {
           ),
         }}
       />
-      
     </Tabs>
   );
 }

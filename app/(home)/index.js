@@ -10,9 +10,11 @@ import {
 } from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
+// Home screen showing welcome, info cards, and logout/start buttons
 export default function HomePage() {
   const router = useRouter();
 
+  // Logs out user and redirects to auth flow
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -24,6 +26,7 @@ export default function HomePage() {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Header section with welcome and logout */}
       <View style={styles.header}>
         <Text style={styles.welcomeText}>Welcome to</Text>
         <Text style={styles.appName}>KoaCoach</Text>
@@ -32,14 +35,15 @@ export default function HomePage() {
         </TouchableOpacity>
       </View>
 
+      {/* Informational cards and CTA */}
       <View style={styles.cardContainer}>
+        {/* Wellness coach card */}
         <View style={styles.card}>
           <Image
             source={require("../../assets/images/icon.png")}
             style={styles.koalaIcon}
             resizeMode="contain"
           />
-
           <Text style={styles.cardTitle}>Wellness Coach</Text>
           <Text style={styles.cardDescription}>
             Koa is your personalized wellness coach, helping you achieve your
@@ -47,6 +51,7 @@ export default function HomePage() {
           </Text>
         </View>
 
+        {/* Mindfulness card */}
         <View style={styles.card}>
           <FontAwesome5 name="hand-holding-heart" size={40} color="#196315" />
           <Text style={styles.cardTitle}>Mindfulness</Text>
@@ -55,6 +60,7 @@ export default function HomePage() {
           </Text>
         </View>
 
+        {/* CTA button to talk to Koa (navigate to therapist page) */}
         <TouchableOpacity
           style={styles.startButton}
           onPress={() => router.push("/therapist")}
@@ -66,6 +72,7 @@ export default function HomePage() {
   );
 }
 
+// Styles for layout and UI components
 const styles = StyleSheet.create({
   container: {
     flex: 1,
