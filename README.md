@@ -1,10 +1,10 @@
-# KoaCoach 🐨
+# Koamigo 🐨
 
-Meet Koa, your personalized wellness coach who makes self-care fun and rewarding! KoaCoach is a gamified wellness application that transforms your wellness journey into an engaging experience through wellness experience points (wXP).
+Meet Koa, your personalized wellness coach who makes self-care fun and rewarding! Koamigo is a gamified wellness application that transforms your wellness journey into an engaging experience through wellness experience points (wXP).
 
-## 🎮 What is KoaCoach?
+## 🎮 What is Koamigo?
 
-KoaCoach gamifies your wellness routine by introducing a points-based system that makes healthy habits addictive in the best way possible. As you complete wellness activities, you earn wXP (wellness experience points) that unlock new features, challenges, and personalized coaching content.
+Koamigo gamifies your wellness routine by introducing a points-based system that makes healthy habits addictive in the best way possible. As you complete wellness activities, you earn wXP (wellness experience points) that unlock new features, challenges, and personalized coaching content.
 
 ### Key Features
 
