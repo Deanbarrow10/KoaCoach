@@ -47,6 +47,8 @@ console.log(
 // stores current TTS sound
 let currentTTSSound = null;
 
+let loadingSound = null;
+
 const TherapistChat = () => {
   // manages state for chat messages and user interaction
   const [messages, setMessages] = useState([]);
@@ -176,6 +178,8 @@ const TherapistChat = () => {
     const text = overrideText || inputText;
     if (!text.trim()) return;
     setIsLoading(true);
+    // added loading sound and starts loop
+    await playLoadingSound();
     const userMessage = { role: "user", content: text };
     checkForConcerningContent(text);
     extractUserPreferences(text);
@@ -221,6 +225,37 @@ const TherapistChat = () => {
       console.error("Error:", error);
     } finally {
       setIsLoading(false);
+      // in case TTS never plays
+      await stopLoadingSound();
+    }
+  };
+
+  const playLoadingSound = async () => {
+    try {
+      if (loadingSound) {
+        await loadingSound.unloadAsync();
+        loadingSound = null;
+      }
+      const { sound } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/koa-ringtone.mp3"),
+        { isLooping: true, volume: 0.3 }
+      );
+      loadingSound = sound;
+      await sound.playAsync();
+    } catch (e) {
+      console.error("Error playing loading sound:", e);
+    }
+  };
+
+  const stopLoadingSound = async () => {
+    try {
+      if (loadingSound) {
+        await loadingSound.stopAsync();
+        await loadingSound.unloadAsync();
+        loadingSound = null;
+      }
+    } catch (e) {
+      console.error("Error stopping loading sound:", e);
     }
   };
 
@@ -277,6 +312,9 @@ const TherapistChat = () => {
       const { sound } = await Audio.Sound.createAsync({ uri: path });
       // stores current TTS sound
       currentTTSSound = sound;
+      // stop loading loop when TTS is about to play
+      await stopLoadingSound();
+      // then plays TTS
       await sound.playAsync();
     } catch (e) {
       console.error("TTS error:", e);
