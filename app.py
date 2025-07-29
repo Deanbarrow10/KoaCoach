@@ -189,7 +189,6 @@ therapist_match_agent = Agent(
    I want you to actually find real therapists. Not just clinics.
    """,
    tools=[web_search],
-   model="gpt-3.5-turbo",
    model_settings=ModelSettings(
        temperature=0.5,
        max_tokens=250
@@ -288,7 +287,6 @@ therapy_supervisor_agent = Agent(
    For general wellness conversations, start with validation and ask one clarifying question to route correctly.
    Maintain a calm, supportive tone at all times.
    """,
-   model="gpt-3.5-turbo",
    model_settings=ModelSettings(
        temperature=0.5,
        max_tokens=250
