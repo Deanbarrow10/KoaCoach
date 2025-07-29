@@ -6,7 +6,7 @@ it processes incoming chat messages, evaluates user needs, and triggers escalati
 
 
 # loads environment variables
-from agents import Agent, Runner, WebSearchTool, trace
+from agents import Agent, Runner, WebSearchTool, trace, ModelSettings
 import os
 from flask import Flask, jsonify, request, Response
 from twilio.rest import Client
@@ -118,6 +118,11 @@ diagnostic_agent = Agent(
   
    Ask a follow-up question to clarify symptom duration, frequency, or impact on daily life.
    """,
+   model="gpt-3.5-turbo",
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
 )
 
 
@@ -184,6 +189,11 @@ therapist_match_agent = Agent(
    I want you to actually find real therapists. Not just clinics.
    """,
    tools=[web_search],
+   model="gpt-3.5-turbo",
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
 )
 
 
@@ -225,6 +235,11 @@ emotional_support_agent = Agent(
 
    Instead, speak naturally in full sentences as if you're talking to the user directly in a conversation. Avoid labeling your statements or organizing them under topics — just respond as a supportive therapist would.
    """,
+   model="gpt-3.5-turbo",
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
 )
 
 
@@ -249,6 +264,11 @@ crisis_agent = Agent(
 
 
    """,
+   model="gpt-3.5-turbo",
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
 )
 
 
@@ -268,6 +288,11 @@ therapy_supervisor_agent = Agent(
    For general wellness conversations, start with validation and ask one clarifying question to route correctly.
    Maintain a calm, supportive tone at all times.
    """,
+   model="gpt-3.5-turbo",
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
    tools=[web_search],
    handoffs=[emotional_support_agent, diagnostic_agent,
              therapist_match_agent, crisis_agent],
