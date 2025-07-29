@@ -317,12 +317,8 @@ async def therapist():
    lang = data.get('lang', 'en')
    messages = data.get('messages', [])
 
-
    # handles interrupted TTS
    interrupted = data.get('interrupted', False)
-
-
-
 
    # combines chat history into single string for prompt
    chat_str = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
@@ -342,17 +338,8 @@ async def therapist():
    response_text = result.final_output
 
 
-   # uses LLM to extract user's name from conversation
-   name_query = await Runner.run(
-       therapy_supervisor_agent,
-       chat_str + "\n\nExtract ONLY the most recent full name mentioned by the user. Respond with only the name and nothing else."
-   )
-   raw_name = name_query.final_output.strip()
-
-
-   # extracts clean full name from model response
-   name_match = re.search(r"\b[A-Z][a-z]+(?: [A-Z][a-z]+)?\b", raw_name)
-   name = name_match.group(0) if name_match else "Unknown User"
+   # Fallback name for alerting, will update once user form is created
+   name = "Koa User"
 
 
    # checks for crisis-related keywords in user messages
