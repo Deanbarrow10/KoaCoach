@@ -111,7 +111,7 @@ export default function SignUpScreen() {
             medical decisions. Information may not apply to your specific
             circumstances.
             {"\n\n"}
-            This app is intended for individuals 17 years or older, or those
+            This app is intended for individuals 18 years or older, or those
             with guardian consent. Any personal data collected is subject to our
             Privacy Policy.{"\n\n"}
             To the maximum extent allowed by law, Koa disclaims all liability

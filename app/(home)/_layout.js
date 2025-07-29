@@ -28,9 +28,9 @@ export default function Layout() {
       <Tabs.Screen
         name="therapist"
         options={{
-          title: "Therapist",
+          title: "Koa",
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome6 name="book-open-reader" color={color} size={size} />
+            <FontAwesome6 name="paw" color={color} size={size} />
           ),
         }}
       />
