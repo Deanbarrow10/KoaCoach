@@ -18,6 +18,7 @@ import {
   Easing,
 } from "react-native";
 
+
 // Local storage for user preferences
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

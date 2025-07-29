@@ -1,56 +1,5 @@
 {
-  "expo": {
-    "name": "Nexus Care",
-    "slug": "acts-ai",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "nexus-care",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.dean.nexus-care",
-      "buildNumber": "2",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "origin": false
-      },
-      "EXPO_PUBLIC_OPENAI_API_KEY": "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",
-      "eas": {
-        "projectId": "91669049-d140-4ae1-848b-c93f9a431e19"
-      }
-    },
-    "owner": "deanbarrow10"
-  }
+  "plugins": [
+    "expo-video"
+  ]
 }
