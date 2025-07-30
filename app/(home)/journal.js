@@ -14,7 +14,9 @@ import {
 import { supabase } from "../../lib/supabase";
 import moment from "moment";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+///////////////////////////////////////////////////////////////////
 import { rewardJournal } from "../utils/wxp";
+///////////////////////////////////////////////////////////////////
 
 const Journal = () => {
   const [entries, setEntries] = useState([]);
@@ -91,7 +93,7 @@ const Journal = () => {
     setSelectedEntry(null);
     fetchEntries();
   };
-
+///////////////////////////////////////////////////////////////////
   const deleteEntry = async (entryId) => {
     const {
       data: { user },
@@ -133,7 +135,7 @@ const Journal = () => {
       ]
     );
   };
-
+///////////////////////////////////////////////////////////////////
   const selectEntry = (entry) => {
     setSelectedEntry(entry);
     setNewText(entry.text);
