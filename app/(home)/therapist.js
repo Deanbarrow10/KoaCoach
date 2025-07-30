@@ -17,6 +17,8 @@ import {
   Animated,
   Easing,
 } from "react-native";
+import { rewardJournal } from "../utils/wxp";
+
 
 
 // Local storage for user preferences
@@ -193,6 +195,15 @@ const TherapistChat = () => {
     loadUserPreferences();
   }, []);
 
+  const rewardIfNewMessageToday = async () => {
+    try {
+      await rewardJournal();
+    } catch (e) {
+      console.error("Failed to reward wXP for therapist use:", e);
+    }
+  };
+
+
   // Sends a user message to backend and plays AI response
   const sendMessage = async (overrideText = null) => {
     const text = overrideText || inputText;
@@ -245,6 +256,7 @@ const TherapistChat = () => {
       ]);
 
       await speakWithGoogleTTS(cleanedReply);
+      await rewardIfNewMessageToday(); 
     } catch (error) {
       console.error("Error:", error);
     } finally {

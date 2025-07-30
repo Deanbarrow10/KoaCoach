@@ -69,3 +69,5 @@ export const purchaseAccessory = async (type, name, cost) => {
 
   return null; // Prevent re-buying or insufficient XP
 };
+
+export default {};
