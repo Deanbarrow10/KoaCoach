@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import KoalaAnimation from '../components/KoalaAnimations';
 import {
   getWXP,
   getLevel,
+  getUnlockedPuzzles,
+  markPuzzleCompleted,
 } from '../utils/wxp';
 import {
   getStreak,
@@ -18,6 +23,8 @@ import {
   getAccessories,
   setAccessory,
 } from '../utils/xp';
+
+const { height } = Dimensions.get('window');
 
 const unlockedAccessories = [
   { type: 'hat', id: 'hat1', label: '🎩 Hat', unlockLevel: 1 },
@@ -30,6 +37,10 @@ const XPPage = () => {
   const [streak, setStreak] = useState(0);
   const [showKart, setShowKart] = useState(false);
   const [equipped, setEquipped] = useState({});
+  const [showPuzzles, setShowPuzzles] = useState(false);
+  const [showBreathPuzzle, setShowBreathPuzzle] = useState(false);
+  const [puzzleList, setPuzzleList] = useState([]);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const load = async () => {
@@ -40,9 +51,39 @@ const XPPage = () => {
       setLevel(l);
       setStreak(s);
       setEquipped(await getAccessories());
+      const puzzles = await getUnlockedPuzzles();
+      setPuzzleList(puzzles);
     };
     load();
   }, []);
+
+  useEffect(() => {
+    if (showBreathPuzzle) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(scaleAnim, {
+            toValue: 1.5,
+            duration: 4000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1.0,
+            duration: 4000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [showBreathPuzzle]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy < -30,
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy < -30) setShowPuzzles(true);
+      },
+    })
+  ).current;
 
   const xpToNext = 10 - (wxp % 10);
 
@@ -53,7 +94,7 @@ const XPPage = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} {...panResponder.panHandlers}>
       <Text style={styles.title}>Your Wellness XP</Text>
 
       <KoalaAnimation type="hi" style={styles.koala} />
@@ -105,6 +146,69 @@ const XPPage = () => {
               <Text style={styles.closeText}>Close</Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+
+      {/* Swipe Arrow */}
+      <View style={{ marginTop: 10, backgroundColor: '#f2fdf2', padding: 4, borderRadius: 8 }}>
+        <Text style={{ fontSize: 22 }}>⬆️</Text>
+      </View>
+
+      {/* Puzzle Modal */}
+      <Modal visible={showPuzzles} animationType="slide" transparent>
+        <View style={{ flex: 1, backgroundColor: 'white', padding: 24 }}>
+          <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 20 }}>🧩 Puzzles</Text>
+          {puzzleList.map((puzzle) => (
+            <TouchableOpacity
+              key={puzzle.id}
+              disabled={!puzzle.unlocked}
+              style={{
+                backgroundColor: puzzle.unlocked ? '#e0ffe0' : '#ddd',
+                padding: 16,
+                borderRadius: 10,
+                marginBottom: 14,
+              }}
+              onPress={() => {
+                if (puzzle.id === 'breath_rhythm') setShowBreathPuzzle(true);
+              }}
+            >
+              <Text style={{ fontSize: 18 }}>{puzzle.title} {puzzle.completed ? '✅' : ''}</Text>
+              <Text>{puzzle.description}</Text>
+              {!puzzle.unlocked && <Text>🔒 Unlocks at Level {puzzle.levelRequired}</Text>}
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity onPress={() => setShowPuzzles(false)}>
+            <Text style={{ marginTop: 20, fontWeight: 'bold', color: '#1f7442' }}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Breath Rhythm Puzzle */}
+      <Modal visible={showBreathPuzzle} animationType="slide" transparent>
+        <View style={{ flex: 1, backgroundColor: '#f0fff0', justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 22, marginBottom: 40 }}>Breathing Exercise</Text>
+          <Animated.View
+            style={{
+              width: 150,
+              height: 150,
+              borderRadius: 75,
+              backgroundColor: '#a3d9a5',
+              transform: [{ scale: scaleAnim }],
+              marginBottom: 50,
+            }}
+          />
+          <TouchableOpacity
+            onPress={async () => {
+              await markPuzzleCompleted("breath_rhythm");
+              setShowBreathPuzzle(false);
+              setShowPuzzles(false);
+              const puzzles = await getUnlockedPuzzles();
+              setPuzzleList(puzzles);
+            }}
+            style={{ backgroundColor: '#1f7442', padding: 14, borderRadius: 10 }}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold' }}>Done!</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </ScrollView>
