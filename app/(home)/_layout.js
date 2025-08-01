@@ -52,6 +52,15 @@ export default function Layout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="XPPage"
+        options={{
+          title: "wXP",
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome6 name="leaf" color={color} size={size} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

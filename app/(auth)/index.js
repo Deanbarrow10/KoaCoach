@@ -1,32 +1,46 @@
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  SafeAreaView,
-  Dimensions,
-} from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, Dimensions } from "react-native";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { Link } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import KoalaAnimation from "../components/KoalaAnimations";
+import { rewardLogin } from "../utils/wxp";
 
-const { width } = Dimensions.get("window");
-const { height } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 export default function AuthLandingPage() {
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+
       setIsSignedIn(!!session);
+      if (session) await rewardLogin();
+
+      setTimeout(() => setSplashDone(true), 3000);
     };
 
     checkSession();
   }, []);
+
+  // Splash animation when signed in
+  if (isSignedIn && !splashDone) {
+    return (
+      <LinearGradient
+        colors={["#3aa76b", "#1f7442", "#196315"]}
+        style={styles.gradient}
+      >
+        <SafeAreaView style={styles.splashContainer}>
+          <KoalaAnimation type="jump" style={{ width: 280, height: 330 }} />
+          <Text style={styles.splashTitle}>Koamigo</Text>
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
 
   return (
     <>
@@ -46,18 +60,15 @@ export default function AuthLandingPage() {
         >
           <SafeAreaView style={styles.container}>
             <View style={styles.content}>
-              <Image
-                style={styles.logo}
-                source={require("../../assets/images/icon.png")}
-                resizeMode="contain"
-              />
+              <KoalaAnimation type="wave" style={styles.koala} />
             </View>
 
             <View style={styles.content}>
-              <Text style={styles.title}>KoaCoach</Text>
+              <Text style={styles.title}>Koamigo</Text>
               <Text style={styles.subtitle}>
-                Your Wellness Journey Starts Here
+                Hey there! I'm here to help you thrive
               </Text>
+
               <Link href="/(auth)/sign-up" style={styles.signupButton}>
                 <Text style={styles.signupText}>Sign up</Text>
               </Link>
@@ -76,16 +87,26 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
+  splashContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  splashTitle: {
+    fontSize: 36,
+    fontWeight: "bold",
+    color: "#fff",
+    marginTop: 20,
+  },
   container: {
     flex: 1,
   },
-  logo: {
+  koala: {
     width: width * 0.5,
     height: height * 0.3,
-    marginBottom: -120,
+    marginBottom: -70,
   },
   content: {
-    marginBottom: 100,
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

@@ -97,31 +97,24 @@ export default function SignUpScreen() {
             Using Koa does not establish a therapist-patient or provider-client
             relationship. Koa cannot replace the expertise, judgment, or care of
             qualified healthcare professionals.{"\n\n"}
-            We strongly recommend consulting with a licensed physician,
-            therapist, or other qualified provider for any physical or mental
-            health concerns. Always seek professional guidance before making
-            changes to your health or treatment plans.{"\n\n"}
+            Always seek licensed medical professionals before making changes to
+            your health or treatment plans.{"\n\n"}
             If you are experiencing a medical emergency, dial 911 immediately.
-            For mental health crises or suicidal thoughts, contact:{"\n"}- 988
-            Suicide & Crisis Lifeline{"\n"}- Crisis Text Line: Text HOME to
-            741741{"\n"}- Emergency Services: 911{"\n\n"}
+            For mental health crises or suicidal thoughts, contact:{"\n"}• 988
+            Suicide & Crisis Lifeline{"\n"}• Crisis Text Line: Text HOME to
+            741741{"\n"}• Emergency Services: 911{"\n\n"}
             Koa is not capable of diagnosing medical or psychiatric conditions.
-            Recommendations provided are general and not individualized
-            treatment plans. The app should not be used as a primary source for
-            medical decisions. Information may not apply to your specific
-            circumstances.
-            {"\n\n"}
-            This app is intended for individuals 18 years or older, or those
-            with guardian consent. Any personal data collected is subject to our
-            Privacy Policy.{"\n\n"}
-            To the maximum extent allowed by law, Koa disclaims all liability
-            for any harm or damages arising from your use of this application or
-            reliance on any information provided herein.{"\n\n"}
-            By using this app, you acknowledge that you understand Koa is an AI
-            assistant, not a medical provider. You agree to seek professional
-            help when needed. You will not rely solely on this app for
-            healthcare decisions and accept full responsibility for any actions
-            taken based on its content.
+            Information may not apply to your specific circumstances.{"\n\n"}
+            This app is intended for individuals 18 years or older. Any personal
+            data collected is subject to our Privacy Policy.{"\n\n"}
+            By using Koamigo and its content, you agree that Koamigo is not
+            liable for any harm or damages arising out of, or on the account of,
+            any use, operation, reference, or reliance of Koamigo, and you
+            further agree to accept full responsibility for any actions taken
+            based on Koamigo and its content. {"\n\n"}You agree to hold Koamigo,
+            its officers, employees, and affiliates, harmless for any claims,
+            lawsuits, or other actions arising out of, or on the account of, any
+            use, operation, reference, or reliance of Koamigo.
           </Text>
 
           <View
