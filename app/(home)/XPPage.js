@@ -66,13 +66,13 @@ const XPPage = () => {
         style={styles.kartButton}
         onPress={() => setShowKart(true)}
       >
-        <Text style={styles.kartText}>🎁 View Unlocked Items</Text>
+        <Text style={styles.kartText}>🎁 View Koa Cart</Text>
       </TouchableOpacity>
 
       <Modal visible={showKart} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>🎒 Koa Unlockables</Text>
+            <Text style={styles.modalTitle}>🎒 Koa Cart</Text>
 
             {unlockedAccessories.map((acc) =>
               level >= acc.unlockLevel ? (
@@ -89,7 +89,7 @@ const XPPage = () => {
               ) : (
                 <View key={acc.id} style={styles.lockedItem}>
                   <Text style={styles.itemText}>
-                    🔒 {acc.label} (Unlocks at Level {acc.unlockLevel})
+                    {acc.label} (Level {acc.unlockLevel})
                   </Text>
                 </View>
               )
