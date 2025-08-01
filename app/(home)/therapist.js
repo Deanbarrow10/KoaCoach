@@ -68,6 +68,22 @@ const TherapistChat = () => {
   // initializes animation value for recording pulse effect
   const pulseAnim = useState(new Animated.Value(1))[0];
 
+  // initializes audio mode
+  useEffect(() => {
+    const setupAudio = async () => {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        shouldDuckAndroid: true,
+      });
+      console.log("🎛 Audio config initialized");
+    };
+    setupAudio();
+  }, []);
+
   // animates pulse when recording is active
   useEffect(() => {
     if (isRecording) {
@@ -262,6 +278,13 @@ const TherapistChat = () => {
   // sends ai response to google tts and plays generated audio
   const speakWithGoogleTTS = async (text) => {
     const TTS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY;
+
+    // ensure audio session is routed to the speaker
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+    });
+
     console.log(
       "🔊 TTS Key Loaded:",
       process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY?.slice(0, 10)
@@ -305,17 +328,35 @@ const TherapistChat = () => {
       }
 
       const path = FileSystem.documentDirectory + "tts_response.mp3";
+      console.log("📁 Saving MP3 to path:", path);
+
       await FileSystem.writeAsStringAsync(path, result.audioContent, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const { sound } = await Audio.Sound.createAsync({ uri: path });
-      // stores current TTS sound
-      currentTTSSound = sound;
-      // stop loading loop when TTS is about to play
-      await stopLoadingSound();
-      // then plays TTS
-      await sound.playAsync();
+      try {
+        const { sound } = await Audio.Sound.createAsync({ uri: path });
+        // stores current TTS sound
+        currentTTSSound = sound;
+
+        // TODO: uncomment this for TTS debugging
+        // sound.setOnPlaybackStatusUpdate((status) => {
+        //   console.log(
+        //     "[TTS Status]",
+        //     status,
+        //     status.isPlaying,
+        //     status.positionMillis
+        //   );
+        // });
+
+        // stop loading loop when TTS is about to play
+        await stopLoadingSound();
+        // then plays TTS
+        await sound.playAsync();
+        console.log("🔊 TTS played successfully");
+      } catch (e) {
+        console.error("TTS playback error:", e);
+      }
     } catch (e) {
       console.error("TTS error:", e);
     }
@@ -360,8 +401,12 @@ const TherapistChat = () => {
     try {
       setIsRecording(false);
       await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+      });
 
+      const uri = recording.getURI();
       const uploadResult = await FileSystem.uploadAsync(
         "https://api.openai.com/v1/audio/transcriptions",
         uri,
