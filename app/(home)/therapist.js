@@ -49,6 +49,9 @@ let currentTTSSound = null;
 
 let loadingSound = null;
 
+// backend URL
+const BACKEND_URL = "https://koamigo.fly.dev";
+
 const TherapistChat = () => {
   // manages state for chat messages and user interaction
   const [messages, setMessages] = useState([]);
@@ -187,19 +190,16 @@ const TherapistChat = () => {
     setInputText("");
 
     try {
-      const response = await fetch(
-        "https://therapist-backend-9chu.onrender.com/api/therapist",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            lang: languageNames[selectedLanguage],
-            messages: [...messages, userMessage],
-            // handles interrupted TTS
-            interrupted: currentTTSSound !== null,
-          }),
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/api/therapist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lang: languageNames[selectedLanguage],
+          messages: [...messages, userMessage],
+          // handles interrupted TTS
+          interrupted: currentTTSSound !== null,
+        }),
+      });
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Backend Error:", errorText);
