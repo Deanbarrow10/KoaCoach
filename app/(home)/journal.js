@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   Dimensions,
   Animated,
+  Alert,
 } from "react-native";
 import { supabase } from "../../lib/supabase";
 import moment from "moment";
@@ -156,18 +157,31 @@ const Journal = () => {
   };
 
   const renderEntryItem = ({ item }) => (
-    <TouchableOpacity
+    <View
       style={[
         styles.entryItem,
         selectedEntry?.id === item.id && styles.selectedEntry,
       ]}
-      onPress={() => selectEntry(item)}
     >
-      <Text style={styles.entryDate}>
-        {moment(item.created_at).format("MMM D, h:mm A")}
-      </Text>
-      <Ionicons name="create-outline" size={18} color="#555" />
-    </TouchableOpacity>
+      <TouchableOpacity onPress={() => selectEntry(item)} style={{ flex: 1 }}>
+        <Text style={styles.entryDate}>
+          {moment(item.created_at).format("MMM D, h:mm A")}
+        </Text>
+      </TouchableOpacity>
+
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={() => selectEntry(item)}
+          style={{ marginRight: 12 }}
+        >
+          <Ionicons name="create-outline" size={18} color="#555" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => deleteEntry(item.id)}>
+          <MaterialIcons name="delete-outline" size={20} color="#d11a2a" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   const handleNewEntry = () => {
