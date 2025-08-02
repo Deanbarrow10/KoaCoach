@@ -39,6 +39,7 @@ const XPPage = () => {
   const [equipped, setEquipped] = useState({});
   const [showPuzzles, setShowPuzzles] = useState(false);
   const [showBreathPuzzle, setShowBreathPuzzle] = useState(false);
+  const [showMoodMatcher, setShowMoodMatcher] = useState(false);
   const [puzzleList, setPuzzleList] = useState([]);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -150,7 +151,7 @@ const XPPage = () => {
       </Modal>
 
       {/* Swipe Arrow */}
-      <View style={{ marginTop: 10, backgroundColor: '#f2fdf2', padding: 4, borderRadius: 8 }}>
+      <View style={{ marginTop: 10 }}>
         <Text style={{ fontSize: 22 }}>⬆️</Text>
       </View>
 
@@ -170,6 +171,7 @@ const XPPage = () => {
               }}
               onPress={() => {
                 if (puzzle.id === 'breath_rhythm') setShowBreathPuzzle(true);
+                else if (puzzle.id === 'mood_matcher') setShowMoodMatcher(true);
               }}
             >
               <Text style={{ fontSize: 18 }}>{puzzle.title} {puzzle.completed ? '✅' : ''}</Text>
@@ -186,7 +188,7 @@ const XPPage = () => {
       {/* Breath Rhythm Puzzle */}
       <Modal visible={showBreathPuzzle} animationType="slide" transparent>
         <View style={{ flex: 1, backgroundColor: '#f0fff0', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 22, marginBottom: 40 }}>Breathing Exercise</Text>
+          <Text style={{ fontSize: 22, marginBottom: 40 }}>🌬️ Breath Rhythm</Text>
           <Animated.View
             style={{
               width: 150,
@@ -194,7 +196,7 @@ const XPPage = () => {
               borderRadius: 75,
               backgroundColor: '#a3d9a5',
               transform: [{ scale: scaleAnim }],
-              marginBottom: 50,
+              marginBottom: 30,
             }}
           />
           <TouchableOpacity
@@ -207,10 +209,34 @@ const XPPage = () => {
             }}
             style={{ backgroundColor: '#1f7442', padding: 14, borderRadius: 10 }}
           >
-            <Text style={{ color: 'white', fontWeight: 'bold' }}>Done!</Text>
+            <Text style={{ color: 'white', fontWeight: 'bold' }}>✅ I Completed It</Text>
           </TouchableOpacity>
         </View>
       </Modal>
+
+      {/* Mood Matcher Puzzle */}
+      <Modal visible={showMoodMatcher} animationType="slide" transparent>
+        <View style={{ flex: 1, backgroundColor: '#fffaf0', justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 22, marginBottom: 20 }}>🧠 Mood Matcher</Text>
+          <Text style={{ fontSize: 16, marginBottom: 10 }}>Match the emoji to the correct emotion!</Text>
+
+          {/* Example emoji: 😀 = Happy */}
+          <TouchableOpacity
+            style={{ backgroundColor: '#e0ffe0', padding: 20, borderRadius: 12, margin: 10 }}
+            onPress={async () => {
+              setShowMoodMatcher(false);
+              setShowPuzzles(false);
+              await markPuzzleCompleted("mood_matcher");
+              const puzzles = await getUnlockedPuzzles();
+              setPuzzleList(puzzles);
+              // optionally trigger Koa jump animation
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>😀 = Happy ✅</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 };

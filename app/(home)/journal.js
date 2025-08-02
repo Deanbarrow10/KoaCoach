@@ -81,12 +81,13 @@ const Journal = () => {
           user_id: user.id,
         },
       ]);
-
+///////////////////////////////////////////////////////////////////
       if (!error) {
         await rewardJournal(); // ✅ reward XP here
       } else {
         console.error("Error saving entry:", error.message);
       }
+      
     }
 
     setNewText("");
@@ -135,7 +136,6 @@ const Journal = () => {
       ]
     );
   };
-///////////////////////////////////////////////////////////////////
   const selectEntry = (entry) => {
     setSelectedEntry(entry);
     setNewText(entry.text);
@@ -178,6 +178,7 @@ const Journal = () => {
     </View>
   );
 
+  ///////////////////////////////////////////////////////////////////
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity onPress={toggleDropdown} style={styles.dropdownToggle}>

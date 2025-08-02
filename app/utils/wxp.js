@@ -3,16 +3,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const WXP_KEY = 'wxp';
 const LAST_LOGIN_KEY = 'last_login';
 const LAST_JOURNAL_KEY = 'last_journal';
-
+//////////////////////////////////////////////////////
 const PUZZLES = [
+  {
+    id: "mood_matcher",
+    title: "Mood Matcher",
+    description: "Match emojis to the correct emotions!",
+    levelRequired: 1,
+  },
   {
     id: "breath_rhythm",
     title: "Breath Rhythm",
     description: "Follow the breathing pattern to relax.",
-    levelRequired: 1,
+    levelRequired: 2,
   },
 ];
-
+//////////////////////////////////////////////////////
 
 
 export const getWXP = async () => {
