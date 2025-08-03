@@ -117,6 +117,9 @@ const Journal = () => {
     setNewText("");
     setSelectedEntry(null);
     fetchEntries();
+
+    // added to dismiss keyboard
+    Keyboard.dismiss();
   };
 
   const deleteEntry = async (entryId) => {
@@ -212,75 +215,69 @@ const Journal = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView style={styles.container}>
-          <View style={{ flex: 1 }}>
-            <TouchableOpacity
-              onPress={toggleDropdown}
-              style={styles.dropdownToggle}
-            >
-              <Ionicons
-                name={isDropdownOpen ? "chevron-up" : "chevron-down"}
-                size={24}
-                color="#555"
-              />
-              <Text style={styles.dropdownLabel}>
-                {isDropdownOpen ? "Hide Past Entries" : "Show Past Entries"}
+          {/* ▼▼▼ All your original JSX stays the same ▼▼▼ */}
+          <TouchableOpacity
+            onPress={toggleDropdown}
+            style={styles.dropdownToggle}
+          >
+            <Ionicons
+              name={isDropdownOpen ? "chevron-up" : "chevron-down"}
+              size={24}
+              color="#555"
+            />
+            <Text style={styles.dropdownLabel}>
+              {isDropdownOpen ? "Hide Past Entries" : "Show Past Entries"}
+            </Text>
+          </TouchableOpacity>
+
+          <Animated.View
+            style={[styles.dropdownPanel, { height: dropdownHeight }]}
+          >
+            <FlatList
+              data={entries}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderEntryItem}
+            />
+          </Animated.View>
+
+          {showConfetti && <Text style={styles.title}>🎉 +2 wXP!</Text>}
+
+          <View style={styles.editor}>
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={styles.newEntryButton}
+                onPress={handleNewEntry}
+              >
+                <MaterialIcons
+                  name="add-circle-outline"
+                  size={20}
+                  color="#196315"
+                />
+                <Text style={styles.newEntryText}>New Entry</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.input}
+              multiline
+              placeholder="Write your thoughts..."
+              value={newText}
+              onChangeText={setNewText}
+              returnKeyType="done"
+              onSubmitEditing={() => Keyboard.dismiss()}
+            />
+
+            <TouchableOpacity style={styles.saveButton} onPress={saveEntry}>
+              <Text style={styles.saveButtonText}>
+                {selectedEntry ? "Update Entry" : "Save Entry"}
               </Text>
             </TouchableOpacity>
-
-            <Animated.View
-              style={[styles.dropdownPanel, { height: dropdownHeight }]}
-            >
-              <FlatList
-                data={entries}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={renderEntryItem}
-                ListFooterComponent={
-                  <>
-                    {showConfetti && (
-                      <Text style={styles.title}>🎉 +2 wXP!</Text>
-                    )}
-
-                    <View style={styles.editor}>
-                      <View style={styles.actionRow}>
-                        <TouchableOpacity
-                          style={styles.newEntryButton}
-                          onPress={handleNewEntry}
-                        >
-                          <MaterialIcons
-                            name="add-circle-outline"
-                            size={20}
-                            color="#196315"
-                          />
-                          <Text style={styles.newEntryText}>New Entry</Text>
-                        </TouchableOpacity>
-                      </View>
-
-                      <TextInput
-                        style={styles.input}
-                        multiline
-                        placeholder="Write your thoughts..."
-                        value={newText}
-                        onChangeText={setNewText}
-                      />
-
-                      <TouchableOpacity
-                        style={styles.saveButton}
-                        onPress={saveEntry}
-                      >
-                        <Text style={styles.saveButtonText}>
-                          {selectedEntry ? "Update Entry" : "Save Entry"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </>
-                }
-              />
-            </Animated.View>
           </View>
+          {/* ▲▲▲ End of original JSX ▲▲▲ */}
         </SafeAreaView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
