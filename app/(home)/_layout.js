@@ -19,9 +19,9 @@ export default function Layout() {
       <Tabs.Screen
         name="wellness"
         options={{
-          title: "Wellness",
+          title: "Explore",
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="heart" color={color} size={size} />
+            <FontAwesome name="lightbulb-o" color={color} size={size} />
           ),
         }}
       />
