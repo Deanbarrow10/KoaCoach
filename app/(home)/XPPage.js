@@ -8,7 +8,12 @@ import {
   Modal,
 } from "react-native";
 import KoalaAnimation from "../components/KoalaAnimations";
-import { getWXP, getLevel } from "../utils/wxp";
+import { getWXP, getLevel, rewardLogin, updateStreak } from "../utils/wxp";
+
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const unlockedAccessories = [
   { type: "hat", id: "hat1", label: "🎩 Hat", unlockLevel: 1 },
@@ -22,18 +27,31 @@ const XPPage = () => {
   const [showKart, setShowKart] = useState(false);
   const [equipped, setEquipped] = useState({});
 
-  useEffect(() => {
-    const load = async () => {
-      const w = await getWXP();
-      const l = await getLevel();
-      const s = await updateStreak();
-      setWXP(w);
-      setLevel(l);
-      setStreak(s);
-      setEquipped(await getAccessories());
-    };
-    load();
-  }, []);
+  // adding some confetti for gaining wXP
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const load = async () => {
+        const reward = await rewardLogin(); // rewards user for logging in today
+        if (reward) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 2000);
+        }
+
+        const currentWXP = reward ?? (await getWXP());
+        const currentLevel = Math.floor(currentWXP / 10) + 1;
+
+        setWXP(currentWXP);
+        setLevel(currentLevel);
+
+        const s = await updateStreak?.();
+        if (s !== undefined) setStreak(s);
+        setEquipped(await getAccessories());
+      };
+      load();
+    }, [])
+  );
 
   const xpToNext = 10 - (wxp % 10);
 
@@ -47,6 +65,8 @@ const XPPage = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Your Wellness XP</Text>
 
+      {showConfetti && <Text style={styles.title}>🎉 +1 wXP!</Text>}
+
       <KoalaAnimation type="hi" style={styles.koala} />
 
       <View style={styles.statsContainer}>
@@ -58,7 +78,7 @@ const XPPage = () => {
         <View style={styles.barBackground}>
           <View style={[styles.barFill, { width: `${(wxp % 10) * 10}%` }]} />
         </View>
-        <Text style={styles.xpText}>{wxp % 10}/10 to next level</Text>
+        <Text style={styles.xpText}>{wxp % 10}/10 reached</Text>
       </View>
 
       {/* Koa Kart Unlockables */}

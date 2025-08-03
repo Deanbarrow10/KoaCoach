@@ -24,6 +24,9 @@ const Journal = () => {
   const dropdownHeight = useRef(new Animated.Value(0)).current;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // adding some confetti for gaining wXP
+  const [showConfetti, setShowConfetti] = useState(false);
+
   useEffect(() => {
     fetchEntries();
   }, []);
@@ -91,7 +94,19 @@ const Journal = () => {
         },
       ]);
 
-      if (error) console.error("Error saving entry:", error.message);
+      if (error) {
+        console.error("Error saving entry:", error.message);
+      } else {
+        // ✅ Only reward if journal has at least 10 words
+        const wordCount = newText.trim().split(/\s+/).length;
+        if (wordCount >= 10) {
+          const rewarded = await rewardJournal();
+          if (rewarded) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 2000);
+          }
+        }
+      }
     }
 
     setNewText("");
@@ -210,6 +225,8 @@ const Journal = () => {
         />
       </Animated.View>
 
+      {showConfetti && <Text style={styles.title}>🎉 +2 wXP!</Text>}
+
       <View style={styles.editor}>
         <View style={styles.actionRow}>
           <TouchableOpacity
@@ -247,6 +264,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAFAFA",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 12,
+    color: "#1f7442",
+    textAlign: "center",
+    marginTop: 10,
   },
   dropdownToggle: {
     flexDirection: "row",
