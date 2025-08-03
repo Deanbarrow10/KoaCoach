@@ -216,7 +216,7 @@ const Journal = () => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView style={styles.container}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={{ flex: 1 }}>
             <TouchableOpacity
               onPress={toggleDropdown}
               style={styles.dropdownToggle}
@@ -238,41 +238,49 @@ const Journal = () => {
                 data={entries}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderEntryItem}
+                ListFooterComponent={
+                  <>
+                    {showConfetti && (
+                      <Text style={styles.title}>🎉 +2 wXP!</Text>
+                    )}
+
+                    <View style={styles.editor}>
+                      <View style={styles.actionRow}>
+                        <TouchableOpacity
+                          style={styles.newEntryButton}
+                          onPress={handleNewEntry}
+                        >
+                          <MaterialIcons
+                            name="add-circle-outline"
+                            size={20}
+                            color="#196315"
+                          />
+                          <Text style={styles.newEntryText}>New Entry</Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <TextInput
+                        style={styles.input}
+                        multiline
+                        placeholder="Write your thoughts..."
+                        value={newText}
+                        onChangeText={setNewText}
+                      />
+
+                      <TouchableOpacity
+                        style={styles.saveButton}
+                        onPress={saveEntry}
+                      >
+                        <Text style={styles.saveButtonText}>
+                          {selectedEntry ? "Update Entry" : "Save Entry"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                }
               />
             </Animated.View>
-
-            {showConfetti && <Text style={styles.title}>🎉 +2 wXP!</Text>}
-
-            <View style={styles.editor}>
-              <View style={styles.actionRow}>
-                <TouchableOpacity
-                  style={styles.newEntryButton}
-                  onPress={handleNewEntry}
-                >
-                  <MaterialIcons
-                    name="add-circle-outline"
-                    size={20}
-                    color="#196315"
-                  />
-                  <Text style={styles.newEntryText}>New Entry</Text>
-                </TouchableOpacity>
-              </View>
-
-              <TextInput
-                style={styles.input}
-                multiline
-                placeholder="Write your thoughts..."
-                value={newText}
-                onChangeText={setNewText}
-              />
-
-              <TouchableOpacity style={styles.saveButton} onPress={saveEntry}>
-                <Text style={styles.saveButtonText}>
-                  {selectedEntry ? "Update Entry" : "Save Entry"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
+          </View>
         </SafeAreaView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
