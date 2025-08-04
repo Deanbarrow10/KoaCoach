@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import React, { useEffect, useState } from "react";
 import { Redirect, Stack } from "expo-router";
 import { supabase } from "../../lib/supabase"; // adjust path if needed

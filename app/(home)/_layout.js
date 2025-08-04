@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import { Tabs } from "expo-router/tabs";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { FontAwesome6 } from "@expo/vector-icons";

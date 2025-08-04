@@ -12,7 +12,13 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://cemuaqvvhrqxtfuhehhr.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlbXVhcXZ2aHJxeHRmdWhlaGhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNzY3MDYsImV4cCI6MjA2Mzg1MjcwNn0.aPuDhQhKn_2p7MagN5hseUta6B1PAwWydioVeo0JC7E",
+        "EXPO_PUBLIC_GOOGLE_TTS_KEY": "AIzaSyCt97-heBMmfIlan7XuH02hxAl_rJEat54",
+        "EXPO_PUBLIC_OPENAI_API_KEY": "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"
+      }
     }
   },
   "submit": {

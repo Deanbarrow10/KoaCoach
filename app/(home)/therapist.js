@@ -15,8 +15,14 @@ import {
   Image,
   Animated,
   Easing,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+// added constants for google tts key
+import Constants from "expo-constants";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
@@ -38,11 +44,6 @@ const languageNames = {
   zh: "Chinese (Mandarin)",
   hi: "Hindi",
 };
-
-console.log(
-  "🔐 OpenAI Key Loaded:",
-  process.env.EXPO_PUBLIC_OPENAI_API_KEY?.slice(0, 10)
-);
 
 // stores current TTS sound
 let currentTTSSound = null;
@@ -277,18 +278,14 @@ const TherapistChat = () => {
 
   // sends ai response to google tts and plays generated audio
   const speakWithGoogleTTS = async (text) => {
-    const TTS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY;
+    // added constants for google tts key, production doesn't use env vars
+    const TTS_API_KEY = Constants.expoConfig.extra.googleTTSKey;
 
     // ensure audio session is routed to the speaker
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
       playsInSilentModeIOS: true,
     });
-
-    console.log(
-      "🔊 TTS Key Loaded:",
-      process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY?.slice(0, 10)
-    );
 
     if (!TTS_API_KEY) {
       console.error("🚨 TTS API Key not found");
@@ -381,7 +378,11 @@ const TherapistChat = () => {
     // interrupts TTS if needed
     await interruptTTSIfNeeded();
     try {
-      await Audio.requestPermissionsAsync();
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        alert("Microphone access is required to record audio.");
+        return;
+      }
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -415,7 +416,7 @@ const TherapistChat = () => {
           uploadType: FileSystem.FileSystemUploadType.MULTIPART,
           fieldName: "file",
           headers: {
-            Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
+            Authorization: `Bearer ${Constants.expoConfig.extra.openaiKey}`,
           },
           parameters: {
             model: "whisper-1",
