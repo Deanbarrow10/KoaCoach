@@ -1,6 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Image } from "react-native";
-import { WebView } from "react-native-webview";
+import { View, Image, StyleSheet } from "react-native";
 
 // Map animation types to GIFs
 const gifMap = {
@@ -19,56 +18,12 @@ const defaultStyles = {
 };
 
 const KoalaAnimation = ({ type = "hi", style = {} }) => {
-  const source = gifMap[type];
-
-  if (!source) {
-    console.warn(
-      `[KoalaAnimation] Unknown type "${type}", falling back to "hi"`
-    );
-  }
-
-  const uri = Image.resolveAssetSource(source || gifMap.hi).uri;
+  const source = gifMap[type] || gifMap.hi;
   const baseStyle = defaultStyles[type] || defaultStyles.hi;
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          html, body {
-            margin: 0;
-            padding: 0;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-          }
-          img {
-            max-width: 90%;
-            max-height: 80%;
-          }
-        </style>
-      </head>
-      <body>
-        <img src="${uri}" />
-      </body>
-    </html>
-  `;
 
   return (
     <View style={[styles.container, style]}>
-      <WebView
-        originWhitelist={["*"]}
-        source={{ html }}
-        style={[styles.webview, baseStyle, style]} // base + override
-        scrollEnabled={false}
-        bounces={false}
-        backgroundColor="transparent"
-      />
+      <Image source={source} style={[baseStyle, style]} resizeMode="contain" />
     </View>
   );
 };
@@ -77,10 +32,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
-    overflow: "visible",
-  },
-  webview: {
-    backgroundColor: "transparent",
   },
 });
 

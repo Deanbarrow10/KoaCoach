@@ -57,6 +57,7 @@ export default {
       googleTTSKey: process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY,
       openaiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
     },
+    assetBundlePatterns: ["**/*"],
     owner: "deanbarrow10",
   },
 };

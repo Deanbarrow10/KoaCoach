@@ -458,76 +458,86 @@ const TherapistChat = () => {
 
   // renders the full therapist chat screen UI
   return (
-    <SafeAreaView style={styles.container}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          marginTop: 20,
-        }}
-      >
-        {["en", "es", "fr", "zh", "hi"].map((lang) => (
-          <TouchableOpacity
-            key={lang}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // adjust if needed
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.container}>
+          {/* your full existing layout here */}
+          <View
             style={{
-              marginHorizontal: 6,
-              backgroundColor:
-                selectedLanguage === lang ? "#196315" : "#E9E9EB",
-              borderRadius: 8,
-              padding: 4,
+              flexDirection: "row",
+              justifyContent: "center",
+              marginTop: 20,
             }}
-            onPress={() => setSelectedLanguage(lang)}
           >
-            <Image
-              source={flagIcons[lang]}
-              style={{ width: 32, height: 20, borderRadius: 4 }}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
+            {["en", "es", "fr", "zh", "hi"].map((lang) => (
+              <TouchableOpacity
+                key={lang}
+                style={{
+                  marginHorizontal: 6,
+                  backgroundColor:
+                    selectedLanguage === lang ? "#196315" : "#E9E9EB",
+                  borderRadius: 8,
+                  padding: 4,
+                }}
+                onPress={() => setSelectedLanguage(lang)}
+              >
+                <Image
+                  source={flagIcons[lang]}
+                  style={{ width: 32, height: 20, borderRadius: 4 }}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      <FlatList
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(_, index) => index.toString()}
-        style={styles.messageList}
-      />
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Type your message..."
-          multiline
-        />
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={() => sendMessage()}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Text style={styles.sendButtonText}>...</Text>
-          ) : (
-            <FontAwesome name="send" size={20} color="#fff" />
-          )}
-        </TouchableOpacity>
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              {
-                marginLeft: 10,
-                backgroundColor: isRecording ? "#e74c3c" : "#2ecc71",
-              },
-            ]}
-            onPress={isRecording ? stopRecording : startRecording}
-          >
-            <MaterialIcons name="keyboard-voice" size={24} color="#fff" />
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-    </SafeAreaView>
+          <FlatList
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(_, index) => index.toString()}
+            style={styles.messageList}
+          />
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Type your message..."
+              multiline
+            />
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={() => sendMessage()}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Text style={styles.sendButtonText}>...</Text>
+              ) : (
+                <FontAwesome name="send" size={20} color="#fff" />
+              )}
+            </TouchableOpacity>
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  {
+                    marginLeft: 10,
+                    backgroundColor: isRecording ? "#e74c3c" : "#2ecc71",
+                  },
+                ]}
+                onPress={isRecording ? stopRecording : startRecording}
+              >
+                <MaterialIcons name="keyboard-voice" size={24} color="#fff" />
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
