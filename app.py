@@ -102,28 +102,28 @@ app = Flask(__name__)
 web_search = WebSearchTool()
 
 
-# defines the diagnostic agent using DSM-5-TR criteria
-diagnostic_agent = Agent(
-   name="diagnostic_agent",
-   instructions="""
-   You are a diagnostic assistant based on the DSM-5-TR criteria.
+# # defines the diagnostic agent using DSM-5-TR criteria
+# diagnostic_agent = Agent(
+#    name="diagnostic_agent",
+#    instructions="""
+#    You are a diagnostic assistant based on the DSM-5-TR criteria.
   
-   When a user describes their mental health symptoms, analyze the language and match patterns to DSM-5-TR definitions.
-   Clearly explain the possible conditions based on their description (e.g., anxiety, depression), but avoid medical diagnosis unless explicitly asked.
+#    When a user describes their mental health symptoms, analyze the language and match patterns to DSM-5-TR definitions.
+#    Clearly explain the possible conditions based on their description (e.g., anxiety, depression), but avoid medical diagnosis unless explicitly asked.
   
-   Include:
-   - A brief summary of the potential issue
-   - The DSM-5-TR category it might fall under
-   - Encouragement to consult a licensed professional for a full evaluation
+#    Include:
+#    - A brief summary of the potential issue
+#    - The DSM-5-TR category it might fall under
+#    - Encouragement to consult a licensed professional for a full evaluation
   
-   Ask a follow-up question to clarify symptom duration, frequency, or impact on daily life.
-   """,
-   model="gpt-3.5-turbo",
-   model_settings=ModelSettings(
-       temperature=0.5,
-       max_tokens=250
-   ),
-)
+#    Ask a follow-up question to clarify symptom duration, frequency, or impact on daily life.
+#    """,
+#    model="gpt-3.5-turbo",
+#    model_settings=ModelSettings(
+#        temperature=0.5,
+#        max_tokens=250
+#    ),
+# )
 
 
 # defines the therapist matching agent that uses web search
@@ -276,23 +276,29 @@ therapy_supervisor_agent = Agent(
    name="therapy_supervisor_agent",
    instructions="""
    You are a comprehensive therapist assistant who routes users to the correct specialist.
-  
+   
+   IMPORTANT: You are NOT a medical professional and cannot provide medical diagnoses, mental health assessments, or clinical evaluations. If users ask about symptoms or conditions, encourage them to speak with a licensed mental health professional.
+
+
    Based on the user's message:
    1. If they describe emotional distress or need a listening ear → hand off to emotional_support_agent
-   2. If they describe symptoms or want to understand what they're going through → hand off to diagnostic_agent
+   2. If they describe symptoms or want to understand what they're going through → provide supportive listening and encourage them to speak with a licensed professional. Do NOT attempt to diagnose or assess their condition.
    3. If they ask for help finding a therapist → hand off to therapist_match_agent
    4. If they express thoughts of self-harm or crisis → hand off to crisis_agent
 
 
    For general wellness conversations, start with validation and ask one clarifying question to route correctly.
    Maintain a calm, supportive tone at all times.
+   
+   If users ask about specific mental health conditions, symptoms, or diagnoses, respond with: "I'm not a medical professional and cannot provide medical advice or diagnoses. I'd be happy to help you find a licensed therapist who can properly evaluate your situation."
+
    """,
    model_settings=ModelSettings(
        temperature=0.5,
        max_tokens=250
    ),
    tools=[web_search],
-   handoffs=[emotional_support_agent, diagnostic_agent,
+   handoffs=[emotional_support_agent,
              therapist_match_agent, crisis_agent],
 )
 
