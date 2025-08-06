@@ -10,23 +10,24 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
+/////////////////////////////////////
 import KoalaAnimation from '../components/KoalaAnimations';
 import {
   getWXP,
   getLevel,
   getUnlockedPuzzles,
   markPuzzleCompleted,
-} from '../utils/wxp';
-import {
   getStreak,
   updateStreak,
   getAccessories,
   setAccessory,
-} from '../utils/xp';
+} from '../utils/wxp';
 
 import * as Notifications from 'expo-notifications';
 import * as Permissions from 'expo-permissions';
 import { Platform } from 'react-native';
+/////////////////////////////////////
+
 
 
 const { height } = Dimensions.get('window');
