@@ -1,19 +1,21 @@
 {
   "expo": {
-    "name": "Nexus Care",
-    "slug": "acts-ai",
+    "name": "Koamigo",
+    "slug": "koamigo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "nexus-care",
+    "scheme": "koamigo",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dean.nexus-care",
-      "buildNumber": "2",
+      "bundleIdentifier": "com.koamigo.app",
+      "buildNumber": "7",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "This app uses the microphone to record your voice to talk to Koa.",
+        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition to transcribe your voice to text."
       }
     },
     "android": {
@@ -48,7 +50,7 @@
       },
       "EXPO_PUBLIC_OPENAI_API_KEY": "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",
       "eas": {
-        "projectId": "91669049-d140-4ae1-848b-c93f9a431e19"
+        "projectId": "44f0fd08-e0d2-4058-a1da-65964f3d9fae"
       }
     },
     "owner": "deanbarrow10"

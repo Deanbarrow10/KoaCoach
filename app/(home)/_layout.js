@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import { Tabs } from "expo-router/tabs";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { FontAwesome6 } from "@expo/vector-icons";
@@ -19,22 +20,22 @@ export default function Layout() {
       <Tabs.Screen
         name="wellness"
         options={{
-          title: "Wellness",
+          title: "Explore",
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="heart" color={color} size={size} />
+            <FontAwesome name="lightbulb-o" color={color} size={size} />
           ),
         }}
       />
       <Tabs.Screen
         name="therapist"
         options={{
-          title: "Therapist",
+          title: "Koa",
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome6 name="book-open-reader" color={color} size={size} />
+            <FontAwesome6 name="paw" color={color} size={size} />
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="match"
         options={{
           title: "Match",
@@ -42,7 +43,7 @@ export default function Layout() {
             <FontAwesome6 name="people-arrows" color={color} size={size} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="journal"
         options={{
@@ -52,7 +53,15 @@ export default function Layout() {
           ),
         }}
       />
-      
+      <Tabs.Screen
+        name="XPPage"
+        options={{
+          title: "wXP",
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome6 name="leaf" color={color} size={size} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

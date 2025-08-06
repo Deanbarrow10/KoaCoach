@@ -1,0 +1,9 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -workspace /Users/deanbarrow/Startup/KoaCoach/ios/Koamigo.xcworkspace -configuration Debug -scheme Koamigo -destination id=00008030-000A10E00E38402E DEVELOPMENT_TEAM=C5FC9PV8K2 -allowProvisioningUpdates -allowProvisioningDeviceRegistration
+
+User defaults from command line:
+    IDEPackageSupportUseBuiltinSCM = YES
+
+Build settings from command line:
+    DEVELOPMENT_TEAM = C5FC9PV8K2
+

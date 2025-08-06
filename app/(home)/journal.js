@@ -9,10 +9,18 @@ import {
   SafeAreaView,
   Dimensions,
   Animated,
+  Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Platform,
 } from "react-native";
 import { supabase } from "../../lib/supabase";
 import moment from "moment";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+
+import { rewardJournal } from "../utils/wxp";
 
 const Journal = () => {
   const [entries, setEntries] = useState([]);
@@ -20,6 +28,9 @@ const Journal = () => {
   const [newText, setNewText] = useState("");
   const dropdownHeight = useRef(new Animated.Value(0)).current;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // adding some confetti for gaining wXP
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     fetchEntries();
@@ -88,12 +99,69 @@ const Journal = () => {
         },
       ]);
 
-      if (error) console.error("Error saving entry:", error.message);
+      if (error) {
+        console.error("Error saving entry:", error.message);
+      } else {
+        // ✅ Only reward if journal has at least 10 words
+        const wordCount = newText.trim().split(/\s+/).length;
+        if (wordCount >= 10) {
+          const rewarded = await rewardJournal();
+          if (rewarded) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 2000);
+          }
+        }
+      }
     }
 
     setNewText("");
     setSelectedEntry(null);
     fetchEntries();
+
+    // added to dismiss keyboard
+    Keyboard.dismiss();
+  };
+
+  const deleteEntry = async (entryId) => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("Error fetching user:", userError?.message);
+      return;
+    }
+
+    // Confirm first
+    Alert.alert(
+      "Delete Entry?",
+      "Are you sure you want to permanently delete this journal entry?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const { error } = await supabase
+              .from("journal_entries")
+              .delete()
+              .eq("id", entryId)
+              .eq("user_id", user.id); // ✅ Needed for RLS to succeed
+
+            if (error) {
+              console.error("❌ Deletion error:", error.message);
+            } else {
+              setEntries((prev) => prev.filter((e) => e.id !== entryId));
+              if (selectedEntry?.id === entryId) {
+                setSelectedEntry(null);
+                setNewText("");
+              }
+            }
+          },
+        },
+      ]
+    );
   };
 
   const selectEntry = (entry) => {
@@ -112,18 +180,31 @@ const Journal = () => {
   };
 
   const renderEntryItem = ({ item }) => (
-    <TouchableOpacity
+    <View
       style={[
         styles.entryItem,
         selectedEntry?.id === item.id && styles.selectedEntry,
       ]}
-      onPress={() => selectEntry(item)}
     >
-      <Text style={styles.entryDate}>
-        {moment(item.created_at).format("MMM D, h:mm A")}
-      </Text>
-      <Ionicons name="create-outline" size={18} color="#555" />
-    </TouchableOpacity>
+      <TouchableOpacity onPress={() => selectEntry(item)} style={{ flex: 1 }}>
+        <Text style={styles.entryDate}>
+          {moment(item.created_at).format("MMM D, h:mm A")}
+        </Text>
+      </TouchableOpacity>
+
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={() => selectEntry(item)}
+          style={{ marginRight: 12 }}
+        >
+          <Ionicons name="create-outline" size={18} color="#555" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => deleteEntry(item.id)}>
+          <MaterialIcons name="delete-outline" size={20} color="#d11a2a" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   const handleNewEntry = () => {
@@ -132,56 +213,74 @@ const Journal = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={toggleDropdown} style={styles.dropdownToggle}>
-        <Ionicons
-          name={isDropdownOpen ? "chevron-up" : "chevron-down"}
-          size={24}
-          color="#555"
-        />
-        <Text style={styles.dropdownLabel}>
-          {isDropdownOpen ? "Hide Past Entries" : "Show Past Entries"}
-        </Text>
-      </TouchableOpacity>
-
-      <Animated.View style={[styles.dropdownPanel, { height: dropdownHeight }]}>
-        <FlatList
-          data={entries}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderEntryItem}
-        />
-      </Animated.View>
-
-      <View style={styles.editor}>
-        <View style={styles.actionRow}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.container}>
+          {/* ▼▼▼ All your original JSX stays the same ▼▼▼ */}
           <TouchableOpacity
-            style={styles.newEntryButton}
-            onPress={handleNewEntry}
+            onPress={toggleDropdown}
+            style={styles.dropdownToggle}
           >
-            <MaterialIcons
-              name="add-circle-outline"
-              size={20}
-              color="#196315"
+            <Ionicons
+              name={isDropdownOpen ? "chevron-up" : "chevron-down"}
+              size={24}
+              color="#555"
             />
-            <Text style={styles.newEntryText}>New Entry</Text>
+            <Text style={styles.dropdownLabel}>
+              {isDropdownOpen ? "Hide Past Entries" : "Show Past Entries"}
+            </Text>
           </TouchableOpacity>
-        </View>
 
-        <TextInput
-          style={styles.input}
-          multiline
-          placeholder="Write your thoughts..."
-          value={newText}
-          onChangeText={setNewText}
-        />
+          <Animated.View
+            style={[styles.dropdownPanel, { height: dropdownHeight }]}
+          >
+            <FlatList
+              data={entries}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderEntryItem}
+            />
+          </Animated.View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={saveEntry}>
-          <Text style={styles.saveButtonText}>
-            {selectedEntry ? "Update Entry" : "Save Entry"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          {showConfetti && <Text style={styles.title}>🎉 +2 wXP!</Text>}
+
+          <View style={styles.editor}>
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={styles.newEntryButton}
+                onPress={handleNewEntry}
+              >
+                <MaterialIcons
+                  name="add-circle-outline"
+                  size={20}
+                  color="#196315"
+                />
+                <Text style={styles.newEntryText}>New Entry</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.input}
+              multiline
+              placeholder="Write your thoughts..."
+              value={newText}
+              onChangeText={setNewText}
+              returnKeyType="done"
+              onSubmitEditing={() => Keyboard.dismiss()}
+            />
+
+            <TouchableOpacity style={styles.saveButton} onPress={saveEntry}>
+              <Text style={styles.saveButtonText}>
+                {selectedEntry ? "Update Entry" : "Save Entry"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {/* ▲▲▲ End of original JSX ▲▲▲ */}
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -189,6 +288,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAFAFA",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 12,
+    color: "#1f7442",
+    textAlign: "center",
+    marginTop: 10,
   },
   dropdownToggle: {
     flexDirection: "row",

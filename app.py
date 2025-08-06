@@ -1,19 +1,21 @@
 """
-app.py defines the backend server for the AI therapist assistant. it creates a Flask API that routes messages to specialized agents including diagnostic, support, crisis, and matching agents. 
+app.py defines the backend server for the AI therapist assistant. it creates a Flask API that routes messages to specialized agents including diagnostic, support, crisis, and matching agents.
 it uses OpenAI's API and sends crisis alerts via SMS & email, and supports web search for therapist lookup.
 it processes incoming chat messages, evaluates user needs, and triggers escalation protocols when risk is detected.
 """
 
+
 # loads environment variables
-from agents import Agent, Runner, WebSearchTool, trace
+from agents import Agent, Runner, WebSearchTool, trace, ModelSettings
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from twilio.rest import Client
 from sendmail import MailSender
 import re
 import openai
 from dotenv import load_dotenv
 load_dotenv()
+
 
 # sets up Twilio client using environment variables
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
@@ -22,271 +24,359 @@ twilio_phone_number = os.getenv("TWILIO_PHONE_NUMBER")
 crisis_sms_recipient = os.getenv("CRISIS_PHONE_NUMBER")
 twilio_client = Client(account_sid, auth_token)
 
+
 # sets OpenAI API key from environment and checks presence
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
-    print("🔍 Debug: OPENAI_API_KEY =", os.getenv("OPENAI_API_KEY"))
-    raise RuntimeError("❌ OPENAI_API_KEY not set in environment")
+   print("🔍 Debug: OPENAI_API_KEY =", os.getenv("OPENAI_API_KEY"))
+   raise RuntimeError("❌ OPENAI_API_KEY not set in environment")
+
 
 # sends a basic SMS alert when a crisis is detected
 def send_crisis_sms():
-    try:
-        message = twilio_client.messages.create(
-            body="A crisis event has been detected.",
-            from_=twilio_phone_number,
-            to=crisis_sms_recipient
-        )
-        print(f"[CRISIS SMS SENT] SID: {message.sid}")
-    except Exception as e:
-        print(f"[CRISIS SMS ERROR] {e}")
+   try:
+       message = twilio_client.messages.create(
+           body="A crisis event has been detected.",
+           from_=twilio_phone_number,
+           to=crisis_sms_recipient
+       )
+       print(f"[CRISIS SMS SENT] SID: {message.sid}")
+   except Exception as e:
+       print(f"[CRISIS SMS ERROR] {e}")
+
 
 # sends an email alert with detailed crisis information
 def send_crisis_email(name: str, crisis_type: str, user_message: str = None):
-    try:
-        email_user = os.getenv("EMAIL_ADDRESS")
-        email_pass = os.getenv("EMAIL_PASSWORD")
-        email_recipient = os.getenv("EMAIL_RECIPIENT")
+   try:
+       email_user = os.getenv("EMAIL_ADDRESS")
+       email_pass = os.getenv("EMAIL_PASSWORD")
+       email_recipient = os.getenv("EMAIL_RECIPIENT")
 
-        subject = f"Crisis Alert: {name}"
-        plaintext = f"""ALERT: Crisis event detected.
+
+       subject = f"Crisis Alert: {name}"
+       plaintext = f"""ALERT: Crisis event detected.
+
 
 Name: {name}
 Type: {crisis_type}
 """
-        if user_message:
-            plaintext += f"\nUser Message:\n{user_message}"
+       if user_message:
+           plaintext += f"\nUser Message:\n{user_message}"
 
-        html = f"""
-        <h2>🚨 Crisis Alert Detected</h2>
-        <p><strong>Name:</strong> {name}<br>
-        <strong>Type:</strong> {crisis_type}</p>
-        """
-        if user_message:
-            html += f"<p><strong>User Message:</strong><br><i>{user_message}</i></p>"
 
-        mailer = MailSender(email_user, email_pass, ('smtp.gmail.com', 587))
-        mailer.set_message(
-            in_plaintext=plaintext,
-            in_subject=subject,
-            in_from="alerts@solace.com",
-            in_htmltext=html
-            # no attachment args at all
-        )
+       html = f"""
+       <h2>🚨 Crisis Alert Detected</h2>
+       <p><strong>Name:</strong> {name}<br>
+       <strong>Type:</strong> {crisis_type}</p>
+       """
+       if user_message:
+           html += f"<p><strong>User Message:</strong><br><i>{user_message}</i></p>"
 
-        mailer.set_recipients([email_recipient])
-        mailer.connect()
-        mailer.send_all()
 
-    except Exception as e:
-        print(f"[CRISIS EMAIL ERROR] {e}")
+       mailer = MailSender(email_user, email_pass, ('smtp.gmail.com', 587))
+       mailer.set_message(
+           in_plaintext=plaintext,
+           in_subject=subject,
+           in_from="alerts@solace.com",
+           in_htmltext=html
+           # no attachment args at all
+       )
+
+
+       mailer.set_recipients([email_recipient])
+       mailer.connect()
+       mailer.send_all()
+
+
+   except Exception as e:
+       print(f"[CRISIS EMAIL ERROR] {e}")
+
+
 
 
 # creates flask web server
 app = Flask(__name__)
 
+
 # initializes web search tool for therapist matching
 web_search = WebSearchTool()
 
-# defines the diagnostic agent using DSM-5-TR criteria
-diagnostic_agent = Agent(
-    name="diagnostic_agent",
-    instructions="""
-    You are a diagnostic assistant based on the DSM-5-TR criteria.
-    
-    When a user describes their mental health symptoms, analyze the language and match patterns to DSM-5-TR definitions.
-    Clearly explain the possible conditions based on their description (e.g., anxiety, depression), but avoid medical diagnosis unless explicitly asked.
-    
-    Include:
-    - A brief summary of the potential issue
-    - The DSM-5-TR category it might fall under
-    - Encouragement to consult a licensed professional for a full evaluation
-    
-    Ask a follow-up question to clarify symptom duration, frequency, or impact on daily life.
-    """,
-)
+
+# # defines the diagnostic agent using DSM-5-TR criteria
+# diagnostic_agent = Agent(
+#    name="diagnostic_agent",
+#    instructions="""
+#    You are a diagnostic assistant based on the DSM-5-TR criteria.
+  
+#    When a user describes their mental health symptoms, analyze the language and match patterns to DSM-5-TR definitions.
+#    Clearly explain the possible conditions based on their description (e.g., anxiety, depression), but avoid medical diagnosis unless explicitly asked.
+  
+#    Include:
+#    - A brief summary of the potential issue
+#    - The DSM-5-TR category it might fall under
+#    - Encouragement to consult a licensed professional for a full evaluation
+  
+#    Ask a follow-up question to clarify symptom duration, frequency, or impact on daily life.
+#    """,
+#    model="gpt-3.5-turbo",
+#    model_settings=ModelSettings(
+#        temperature=0.5,
+#        max_tokens=250
+#    ),
+# )
+
 
 # defines the therapist matching agent that uses web search
 therapist_match_agent = Agent(
-    name="therapist_match_agent",
-    instructions="""
-    You are a therapist matching assistant.
+   name="therapist_match_agent",
+   instructions="""
+   You are a therapist matching assistant.
 
-    Always use the web_search tool to find real therapists who match the user's needs. Do not make up results or guess from memory.
 
-    Before performing any search:
-    - Make sure you know the user's location (such as a city or zip code).
-    - If the location is missing, ask:  
-    "Can you tell me your city or zip code so I can find therapists near you?"
+   Always use the web_search tool to find real therapists who match the user's needs. Do not make up results or guess from memory.
 
-    When you summarize results, take into account:
-    - Type of therapy (CBT, EMDR, talk therapy, etc.)
-    - Location or telehealth availability
-    - Language, gender, or cultural fit
 
-    For each recommended therapist, provide:
-    - Name and credentials
-    - Specializations
-    - Location or telehealth status
-    - Phone number and email if available
-    - A short, conversational description of their approach
+   Before performing any search:
+   - Make sure you know the user's location (such as a city or zip code).
+   - If the location is missing, ask: 
+   "Can you tell me your city or zip code so I can find therapists near you?"
 
-    Only include up to 3 therapist suggestions per response.
 
-    Here is an example of the ideal response format:
+   When you summarize results, take into account:
+   - Type of therapy (CBT, EMDR, talk therapy, etc.)
+   - Location or telehealth availability
+   - Language, gender, or cultural fit
 
-    "Dr. Amanda Lee is a licensed psychologist who specializes in cognitive behavioral therapy for anxiety and trauma.  
-    She offers both in-person sessions in Chicago and virtual appointments.  
-    You can reach her at 555-234-7890 or amanda.lee@example.com.  
-    Would you prefer a therapist who offers evening hours or works on weekends?"
 
-    Do not include any URLs, website links, or Markdown formatting like asterisks or brackets. DO NOT RESPOND WITH ASTERISKS. DO NOT RESPOND WITH ANY links THAT END WITH 'utm_source=openai'.
+   For each recommended therapist, provide:
+   - Name and credentials
+   - Specializations
+   - Location or telehealth status
+   - Phone number and email if available
+   - A short, conversational description of their approach
 
-    Do not wrap text in '**', '[]'. 
 
-    You must write as if your response will be read aloud by a voice assistant. 
+   Only include up to 3 therapist suggestions per response.
 
-    Speak in a smooth, natural voice-ready format.
 
-    At the end of your response, ask a follow-up question about preferences such as insurance coverage or therapy goals.
+   Here is an example of the ideal response format:
 
-    Never respond without using the web_search tool first. DO NOT MAKE UP THERAPISTS. USE THE WEB_SEARCH TOOL. Try to include the therapist contact information. 
 
-    I want you to actually find real therapists. Not just clinics.
-    """,
-    tools=[web_search],
+   "Dr. Amanda Lee is a licensed psychologist who specializes in cognitive behavioral therapy for anxiety and trauma. 
+   She offers both in-person sessions in Chicago and virtual appointments. 
+   You can reach her at 555-234-7890 or amanda.lee@example.com. 
+   Would you prefer a therapist who offers evening hours or works on weekends?"
+
+
+   Do not include any URLs, website links, or Markdown formatting like asterisks or brackets. DO NOT RESPOND WITH ASTERISKS. DO NOT RESPOND WITH ANY links THAT END WITH 'utm_source=openai'.
+
+
+   Do not wrap text in '**', '[]'.
+
+
+   You must write as if your response will be read aloud by a voice assistant.
+
+
+   Speak in a smooth, natural voice-ready format.
+
+
+   At the end of your response, ask a follow-up question about preferences such as insurance coverage or therapy goals.
+
+
+   Never respond without using the web_search tool first. DO NOT MAKE UP THERAPISTS. USE THE WEB_SEARCH TOOL. Try to include the therapist contact information.
+
+
+   I want you to actually find real therapists. Not just clinics.
+   """,
+   tools=[web_search],
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
 )
+
 
 # defines the emotional support agent for providing encouragement and planning
 emotional_support_agent = Agent(
-    name="emotional_support_agent",
-    instructions="""
-    When communicating with users seeking support, prioritize these evidence-based techniques that are strongly associated with reliable improvement:
+   name="emotional_support_agent",
+   instructions="""
+   When communicating with users seeking support, prioritize these evidence-based techniques that are strongly associated with reliable improvement:
 
-    1. THERAPEUTIC PRAISE: Regularly acknowledge user progress, efforts, and strengths. Use specific, genuine praise that reinforces positive behaviors and thinking patterns.
 
-    2. FUTURE PLANNING: Guide users to develop concrete, actionable plans. Help them anticipate challenges and create specific strategies for implementing healthy behaviors and coping mechanisms.
+   1. THERAPEUTIC PRAISE: Regularly acknowledge user progress, efforts, and strengths. Use specific, genuine praise that reinforces positive behaviors and thinking patterns.
 
-    3. HIGHLIGHT PERCEPTIONS OF CHANGE: Draw attention to positive changes the user has made or experienced, even small ones. Help them recognize their progress and changing perspectives.
 
-    4. EMPHASIZE CHANGE METHODS: Focus conversations on specific techniques and methods that facilitate change. Provide clear, practical tools and strategies users can implement.
+   2. FUTURE PLANNING: Guide users to develop concrete, actionable plans. Help them anticipate challenges and create specific strategies for implementing healthy behaviors and coping mechanisms.
 
-    5. SET CLEAR AGENDAS: Structure conversations with clear objectives. Begin interactions by establishing what will be discussed and what outcomes are desired.
 
-    6. ELICIT AND GIVE FEEDBACK: Regularly ask for the user's thoughts and reactions, then provide constructive, specific feedback on their approaches and ideas.
+   3. HIGHLIGHT PERCEPTIONS OF CHANGE: Draw attention to positive changes the user has made or experienced, even small ones. Help them recognize their progress and changing perspectives.
 
-    7. REVIEW HOMEWORK: Follow up on previously suggested activities or practices and discuss outcomes and learnings.
 
-    For each interaction, try to base your response on the following techniques. You are to provide emotional support to the user. 
-    
-    Always mention that you should try seeking a therapist on our platform in a subtle manner. Do not be overly pushy. Mention in a subtle way.
+   4. EMPHASIZE CHANGE METHODS: Focus conversations on specific techniques and methods that facilitate change. Provide clear, practical tools and strategies users can implement.
 
-    Do not include category labels, headings, or section titles like "Therapeutic Praise:", "Future Planning:", or "Highlight Perceptions of Change:".  
 
-    Instead, speak naturally in full sentences as if you're talking to the user directly in a conversation. Avoid labeling your statements or organizing them under topics — just respond as a supportive therapist would.
-    """,
+   5. SET CLEAR AGENDAS: Structure conversations with clear objectives. Begin interactions by establishing what will be discussed and what outcomes are desired.
+
+
+   6. ELICIT AND GIVE FEEDBACK: Regularly ask for the user's thoughts and reactions, then provide constructive, specific feedback on their approaches and ideas.
+
+
+   7. REVIEW HOMEWORK: Follow up on previously suggested activities or practices and discuss outcomes and learnings.
+
+
+   For each interaction, try to base your response on the following techniques. You are to provide emotional support to the user.
+  
+   Always mention that you should try seeking a therapist on our platform in a subtle manner. Do not be overly pushy. Mention in a subtle way.
+
+
+   Do not include category labels, headings, or section titles like "Therapeutic Praise:", "Future Planning:", or "Highlight Perceptions of Change:". 
+
+
+   Instead, speak naturally in full sentences as if you're talking to the user directly in a conversation. Avoid labeling your statements or organizing them under topics — just respond as a supportive therapist would.
+   """,
+   model="gpt-3.5-turbo",
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
 )
+
 
 # defines the crisis agent for emergency situations
 crisis_agent = Agent(
-    name="crisis_agent",
-    instructions="""
-    You are a crisis triage agent.
+   name="crisis_agent",
+   instructions="""
+   You are a crisis triage agent.
 
-    If a user mentions self-harm, suicidal ideation, or extreme distress, respond with calm empathy.
-    
-    Do not try to diagnose or counsel. Instead:
-    - Validate the person’s pain
-    - Provide the Suicide Prevention Hotline (988 in the US)
-    - Offer grounding statements and recommend immediate help
-    
-    Ask: “Would you like me to connect you with professional resources or support lines?”
 
-    Please note that I am not a licensed therapist. I recommend you seek professional help.
+   If a user mentions self-harm, suicidal ideation, or extreme distress, respond with calm empathy.
+  
+   Do not try to diagnose or counsel. Instead:
+   - Validate the person’s pain
+   - Provide the Suicide Prevention Hotline (988 in the US)
+   - Offer grounding statements and recommend immediate help
+  
+   Ask: “Would you like me to connect you with professional resources or support lines?”
 
-    """,
+
+   Please note that I am not a licensed therapist. I recommend you seek professional help.
+
+
+   """,
+   model="gpt-3.5-turbo",
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
 )
+
 
 # defines the supervisor agent that routes users to the appropriate specialist
 therapy_supervisor_agent = Agent(
-    name="therapy_supervisor_agent",
-    instructions="""
-    You are a comprehensive therapist assistant who routes users to the correct specialist.
-    
-    Based on the user's message:
-    1. If they describe emotional distress or need a listening ear → hand off to emotional_support_agent
-    2. If they describe symptoms or want to understand what they're going through → hand off to diagnostic_agent
-    3. If they ask for help finding a therapist → hand off to therapist_match_agent
-    4. If they express thoughts of self-harm or crisis → hand off to crisis_agent
+   name="therapy_supervisor_agent",
+   instructions="""
+   You are a comprehensive therapist assistant who routes users to the correct specialist.
+   
+   IMPORTANT: You are NOT a medical professional and cannot provide medical diagnoses, mental health assessments, or clinical evaluations. If users ask about symptoms or conditions, encourage them to speak with a licensed mental health professional.
 
-    For general wellness conversations, start with validation and ask one clarifying question to route correctly.
-    Maintain a calm, supportive tone at all times.
-    """,
-    tools=[web_search],
-    handoffs=[emotional_support_agent, diagnostic_agent,
-              therapist_match_agent, crisis_agent],
+
+   Based on the user's message:
+   1. If they describe emotional distress or need a listening ear → hand off to emotional_support_agent
+   2. If they describe symptoms or want to understand what they're going through → provide supportive listening and encourage them to speak with a licensed professional. Do NOT attempt to diagnose or assess their condition.
+   3. If they ask for help finding a therapist → hand off to therapist_match_agent
+   4. If they express thoughts of self-harm or crisis → hand off to crisis_agent
+
+
+   For general wellness conversations, start with validation and ask one clarifying question to route correctly.
+   Maintain a calm, supportive tone at all times.
+   
+   If users ask about specific mental health conditions, symptoms, or diagnoses, respond with: "I'm not a medical professional and cannot provide medical advice or diagnoses. I'd be happy to help you find a licensed therapist who can properly evaluate your situation."
+
+   """,
+   model_settings=ModelSettings(
+       temperature=0.5,
+       max_tokens=250
+   ),
+   tools=[web_search],
+   handoffs=[emotional_support_agent,
+             therapist_match_agent, crisis_agent],
 )
+
+
 
 
 # ---- Routes ----
 
+
 # handles basic logging route for debugging
 @app.route('/api/log', methods=['GET'])
 async def log():
-    x = request.args.get('x', default='Guest')
-    print("[LOG]", x)
-    return 'message received!'
+   x = request.args.get('x', default='Guest')
+   print("[LOG]", x)
+   return 'message received!'
+
 
 # handles therapist chat request and routes to proper agent
 @app.route('/api/therapist', methods=['POST'])
 async def therapist():
-    data = request.get_json() or {}
-    lang = data.get('lang', 'en')
-    messages = data.get('messages', [])
+   data = request.get_json() or {}
+   lang = data.get('lang', 'en')
+   messages = data.get('messages', [])
 
-    # combines chat history into single string for prompt
-    chat_str = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
-    prompt = f"Respond in {lang}:\n{chat_str}"
+   # handles interrupted TTS
+   interrupted = data.get('interrupted', False)
 
-    # runs the supervisor agent to generate reply
-    result = await Runner.run(therapy_supervisor_agent, prompt)
-    response_text = result.final_output
+   # combines chat history into single string for prompt
+   chat_str = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
 
-    # uses LLM to extract user's name from conversation
-    name_query = await Runner.run(
-        therapy_supervisor_agent,
-        chat_str + "\n\nExtract ONLY the most recent full name mentioned by the user. Respond with only the name and nothing else."
-    )
-    raw_name = name_query.final_output.strip()
 
-    # extracts clean full name from model response
-    name_match = re.search(r"\b[A-Z][a-z]+(?: [A-Z][a-z]+)?\b", raw_name)
-    name = name_match.group(0) if name_match else "Unknown User"
+   # handles interrupted TTS
+   if interrupted:
+       prompt = f"(The user just interrupted you. Respond concisely and naturally.) Respond in {lang}:\n{chat_str}"
+   else:
+       prompt = f"Respond in {lang}:\n{chat_str}"
 
-    # checks for crisis-related keywords in user messages
-    user_inputs = " ".join([m["content"] for m in messages if m["role"] == "user"])
-    crisis_keywords = ["988", "suicidal", "kill myself", "self-harm", "hurt myself"]
 
-    if any(kw in user_inputs.lower() for kw in crisis_keywords) or "988" in response_text:
-        send_crisis_sms()
-        send_crisis_email(
-            name=name,
-            crisis_type="Possible suicidal ideation",
-            user_message=user_inputs
-        )
 
-    return response_text
+
+   # runs the supervisor agent to generate reply
+   result = await Runner.run(therapy_supervisor_agent, prompt)
+   response_text = result.final_output
+
+
+   # Fallback name for alerting, will update once user form is created
+   name = "Koa User"
+
+
+   # checks for crisis-related keywords in user messages
+   user_inputs = " ".join([m["content"] for m in messages if m["role"] == "user"])
+   crisis_keywords = ["988", "suicidal", "kill myself", "self-harm", "hurt myself"]
+
+
+   if any(kw in user_inputs.lower() for kw in crisis_keywords) or "988" in response_text:
+       send_crisis_sms()
+       send_crisis_email(
+           name=name,
+           crisis_type="Possible suicidal ideation",
+           user_message=user_inputs
+       )
+
+
+   return response_text
+
 
 # handles web search queries through agent tool
 @app.route('/api/web', methods=['GET'])
 async def web():
-    query = request.args.get('query', default='Guest')
-    with trace("Web search"):
-        result = await Runner.run(web_search, query)
-    print("[WEB SEARCH RESULT]:", result.final_output)
-    return jsonify({'message': result.final_output})
+   query = request.args.get('query', default='Guest')
+   with trace("Web search"):
+       result = await Runner.run(web_search, query)
+   print("[WEB SEARCH RESULT]:", result.final_output)
+   return jsonify({'message': result.final_output})
+
 
 # returns the posted data in a JSON response
 @app.route('/api/echo', methods=['POST'])
 def echo():
-    data = request.json
-    return jsonify({'you_sent': data})
+   data = request.json
+   return jsonify({'you_sent': data})

@@ -15,9 +15,14 @@ import {
   Image,
   Animated,
   Easing,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Anthropic from "@anthropic-ai/sdk";
+// added constants for google tts key
+import Constants from "expo-constants";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
@@ -40,10 +45,13 @@ const languageNames = {
   hi: "Hindi",
 };
 
-console.log(
-  "🔐 OpenAI Key Loaded:",
-  process.env.EXPO_PUBLIC_OPENAI_API_KEY?.slice(0, 10)
-);
+// stores current TTS sound
+let currentTTSSound = null;
+
+let loadingSound = null;
+
+// backend URL
+const BACKEND_URL = "https://koamigo.fly.dev";
 
 const TherapistChat = () => {
   // manages state for chat messages and user interaction
@@ -60,6 +68,22 @@ const TherapistChat = () => {
 
   // initializes animation value for recording pulse effect
   const pulseAnim = useState(new Animated.Value(1))[0];
+
+  // initializes audio mode
+  useEffect(() => {
+    const setupAudio = async () => {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        shouldDuckAndroid: true,
+      });
+      console.log("🎛 Audio config initialized");
+    };
+    setupAudio();
+  }, []);
 
   // animates pulse when recording is active
   useEffect(() => {
@@ -174,6 +198,8 @@ const TherapistChat = () => {
     const text = overrideText || inputText;
     if (!text.trim()) return;
     setIsLoading(true);
+    // added loading sound and starts loop
+    await playLoadingSound();
     const userMessage = { role: "user", content: text };
     checkForConcerningContent(text);
     extractUserPreferences(text);
@@ -181,17 +207,16 @@ const TherapistChat = () => {
     setInputText("");
 
     try {
-      const response = await fetch(
-        "https://therapist-backend-9chu.onrender.com/api/therapist",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            lang: languageNames[selectedLanguage],
-            messages: [...messages, userMessage],
-          }),
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/api/therapist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lang: languageNames[selectedLanguage],
+          messages: [...messages, userMessage],
+          // handles interrupted TTS
+          interrupted: currentTTSSound !== null,
+        }),
+      });
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Backend Error:", errorText);
@@ -217,16 +242,50 @@ const TherapistChat = () => {
       console.error("Error:", error);
     } finally {
       setIsLoading(false);
+      // in case TTS never plays
+      await stopLoadingSound();
+    }
+  };
+
+  const playLoadingSound = async () => {
+    try {
+      if (loadingSound) {
+        await loadingSound.unloadAsync();
+        loadingSound = null;
+      }
+      const { sound } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/koa-ringtone.mp3"),
+        { isLooping: true, volume: 0.3 }
+      );
+      loadingSound = sound;
+      await sound.playAsync();
+    } catch (e) {
+      console.error("Error playing loading sound:", e);
+    }
+  };
+
+  const stopLoadingSound = async () => {
+    try {
+      if (loadingSound) {
+        await loadingSound.stopAsync();
+        await loadingSound.unloadAsync();
+        loadingSound = null;
+      }
+    } catch (e) {
+      console.error("Error stopping loading sound:", e);
     }
   };
 
   // sends ai response to google tts and plays generated audio
   const speakWithGoogleTTS = async (text) => {
-    const TTS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY;
-    console.log(
-      "🔊 TTS Key Loaded:",
-      process.env.EXPO_PUBLIC_GOOGLE_TTS_KEY?.slice(0, 10)
-    );
+    // added constants for google tts key, production doesn't use env vars
+    const TTS_API_KEY = Constants.expoConfig.extra.googleTTSKey;
+
+    // ensure audio session is routed to the speaker
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+    });
 
     if (!TTS_API_KEY) {
       console.error("🚨 TTS API Key not found");
@@ -266,21 +325,64 @@ const TherapistChat = () => {
       }
 
       const path = FileSystem.documentDirectory + "tts_response.mp3";
+      console.log("📁 Saving MP3 to path:", path);
+
       await FileSystem.writeAsStringAsync(path, result.audioContent, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const { sound } = await Audio.Sound.createAsync({ uri: path });
-      await sound.playAsync();
+      try {
+        const { sound } = await Audio.Sound.createAsync({ uri: path });
+        // stores current TTS sound
+        currentTTSSound = sound;
+
+        // TODO: uncomment this for TTS debugging
+        // sound.setOnPlaybackStatusUpdate((status) => {
+        //   console.log(
+        //     "[TTS Status]",
+        //     status,
+        //     status.isPlaying,
+        //     status.positionMillis
+        //   );
+        // });
+
+        // stop loading loop when TTS is about to play
+        await stopLoadingSound();
+        // then plays TTS
+        await sound.playAsync();
+        console.log("🔊 TTS played successfully");
+      } catch (e) {
+        console.error("TTS playback error:", e);
+      }
     } catch (e) {
       console.error("TTS error:", e);
     }
   };
 
+  // interrupts TTS if needed
+  const interruptTTSIfNeeded = async () => {
+    if (currentTTSSound) {
+      try {
+        await currentTTSSound.stopAsync();
+        await currentTTSSound.unloadAsync();
+        currentTTSSound = null;
+        console.log("🔇 Agent interrupted");
+      } catch (error) {
+        console.error("TTS interruption error:", error);
+      }
+    }
+  };
+
   // starts recording audio from mic
   const startRecording = async () => {
+    // interrupts TTS if needed
+    await interruptTTSIfNeeded();
     try {
-      await Audio.requestPermissionsAsync();
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        alert("Microphone access is required to record audio.");
+        return;
+      }
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -300,8 +402,12 @@ const TherapistChat = () => {
     try {
       setIsRecording(false);
       await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+      });
 
+      const uri = recording.getURI();
       const uploadResult = await FileSystem.uploadAsync(
         "https://api.openai.com/v1/audio/transcriptions",
         uri,
@@ -310,7 +416,7 @@ const TherapistChat = () => {
           uploadType: FileSystem.FileSystemUploadType.MULTIPART,
           fieldName: "file",
           headers: {
-            Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
+            Authorization: `Bearer ${Constants.expoConfig.extra.openaiKey}`,
           },
           parameters: {
             model: "whisper-1",
@@ -352,76 +458,86 @@ const TherapistChat = () => {
 
   // renders the full therapist chat screen UI
   return (
-    <SafeAreaView style={styles.container}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          marginTop: 20,
-        }}
-      >
-        {["en", "es", "fr", "zh", "hi"].map((lang) => (
-          <TouchableOpacity
-            key={lang}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // adjust if needed
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.container}>
+          {/* your full existing layout here */}
+          <View
             style={{
-              marginHorizontal: 6,
-              backgroundColor:
-                selectedLanguage === lang ? "#196315" : "#E9E9EB",
-              borderRadius: 8,
-              padding: 4,
+              flexDirection: "row",
+              justifyContent: "center",
+              marginTop: 20,
             }}
-            onPress={() => setSelectedLanguage(lang)}
           >
-            <Image
-              source={flagIcons[lang]}
-              style={{ width: 32, height: 20, borderRadius: 4 }}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
+            {["en", "es", "fr", "zh", "hi"].map((lang) => (
+              <TouchableOpacity
+                key={lang}
+                style={{
+                  marginHorizontal: 6,
+                  backgroundColor:
+                    selectedLanguage === lang ? "#196315" : "#E9E9EB",
+                  borderRadius: 8,
+                  padding: 4,
+                }}
+                onPress={() => setSelectedLanguage(lang)}
+              >
+                <Image
+                  source={flagIcons[lang]}
+                  style={{ width: 32, height: 20, borderRadius: 4 }}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      <FlatList
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(_, index) => index.toString()}
-        style={styles.messageList}
-      />
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Type your message..."
-          multiline
-        />
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={() => sendMessage()}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Text style={styles.sendButtonText}>...</Text>
-          ) : (
-            <FontAwesome name="send" size={20} color="#fff" />
-          )}
-        </TouchableOpacity>
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              {
-                marginLeft: 10,
-                backgroundColor: isRecording ? "#e74c3c" : "#2ecc71",
-              },
-            ]}
-            onPress={isRecording ? stopRecording : startRecording}
-          >
-            <MaterialIcons name="keyboard-voice" size={24} color="#fff" />
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-    </SafeAreaView>
+          <FlatList
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(_, index) => index.toString()}
+            style={styles.messageList}
+          />
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Type your message..."
+              multiline
+            />
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={() => sendMessage()}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Text style={styles.sendButtonText}>...</Text>
+              ) : (
+                <FontAwesome name="send" size={20} color="#fff" />
+              )}
+            </TouchableOpacity>
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  {
+                    marginLeft: 10,
+                    backgroundColor: isRecording ? "#e74c3c" : "#2ecc71",
+                  },
+                ]}
+                onPress={isRecording ? stopRecording : startRecording}
+              >
+                <MaterialIcons name="keyboard-voice" size={24} color="#fff" />
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

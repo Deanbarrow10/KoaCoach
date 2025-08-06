@@ -26,7 +26,7 @@ export default function HomePage() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.welcomeText}>Welcome to</Text>
-        <Text style={styles.appName}>KoaCoach</Text>
+        <Text style={styles.appName}>Koamigo</Text>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={24} color="#196315" />
         </TouchableOpacity>
