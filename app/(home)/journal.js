@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,17 +15,17 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Platform,
-} from "react-native";
-import { supabase } from "../../lib/supabase";
-import moment from "moment";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+} from 'react-native';
+import { supabase } from '../../lib/supabase';
+import moment from 'moment';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
-import { rewardJournal } from "../utils/wxp";
+import { rewardJournal } from '../utils/wxp';
 
 const Journal = () => {
   const [entries, setEntries] = useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [newText, setNewText] = useState("");
+  const [newText, setNewText] = useState('');
   const dropdownHeight = useRef(new Animated.Value(0)).current;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -43,17 +43,17 @@ const Journal = () => {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      console.error("Error fetching user:", userError?.message);
+      console.error('Error fetching user:', userError?.message);
       return;
     }
 
     const { data, error } = await supabase
-      .from("journal_entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .from('journal_entries')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
-    if (error) console.error("Error fetching entries:", error.message);
+    if (error) console.error('Error fetching entries:', error.message);
     else setEntries(data);
   };
 
@@ -64,7 +64,7 @@ const Journal = () => {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      console.error("Error fetching user:", userError?.message);
+      console.error('Error fetching user:', userError?.message);
       return;
     }
 
@@ -72,26 +72,23 @@ const Journal = () => {
       data: { session },
     } = await supabase.auth.getSession();
 
-    console.log("Session:", session);
-    console.log("User ID for insert:", user?.id);
-    console.log("👤 supabase.auth.getUser() → user.id:", user?.id);
-    console.log(
-      "🔐 supabase.auth.getSession() → session.user.id:",
-      session?.user?.id
-    );
+    console.log('Session:', session);
+    console.log('User ID for insert:', user?.id);
+    console.log('👤 supabase.auth.getUser() → user.id:', user?.id);
+    console.log('🔐 supabase.auth.getSession() → session.user.id:', session?.user?.id);
 
     const timestamp = new Date().toISOString();
 
     if (selectedEntry) {
       const { error } = await supabase
-        .from("journal_entries")
+        .from('journal_entries')
         .update({ text: newText })
-        .eq("id", selectedEntry.id)
-        .eq("user_id", user.id); // only update if user owns it
+        .eq('id', selectedEntry.id)
+        .eq('user_id', user.id); // only update if user owns it
 
-      if (error) console.error("Error updating entry:", error.message);
+      if (error) console.error('Error updating entry:', error.message);
     } else {
-      const { error } = await supabase.from("journal_entries").insert([
+      const { error } = await supabase.from('journal_entries').insert([
         {
           text: newText,
           created_at: timestamp,
@@ -100,7 +97,7 @@ const Journal = () => {
       ]);
 
       if (error) {
-        console.error("Error saving entry:", error.message);
+        console.error('Error saving entry:', error.message);
       } else {
         // ✅ Only reward if journal has at least 10 words
         const wordCount = newText.trim().split(/\s+/).length;
@@ -114,7 +111,7 @@ const Journal = () => {
       }
     }
 
-    setNewText("");
+    setNewText('');
     setSelectedEntry(null);
     fetchEntries();
 
@@ -129,38 +126,38 @@ const Journal = () => {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      console.error("Error fetching user:", userError?.message);
+      console.error('Error fetching user:', userError?.message);
       return;
     }
 
     // Confirm first
     Alert.alert(
-      "Delete Entry?",
-      "Are you sure you want to permanently delete this journal entry?",
+      'Delete Entry?',
+      'Are you sure you want to permanently delete this journal entry?',
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Delete",
-          style: "destructive",
+          text: 'Delete',
+          style: 'destructive',
           onPress: async () => {
             const { error } = await supabase
-              .from("journal_entries")
+              .from('journal_entries')
               .delete()
-              .eq("id", entryId)
-              .eq("user_id", user.id); // ✅ Needed for RLS to succeed
+              .eq('id', entryId)
+              .eq('user_id', user.id); // ✅ Needed for RLS to succeed
 
             if (error) {
-              console.error("❌ Deletion error:", error.message);
+              console.error('❌ Deletion error:', error.message);
             } else {
               setEntries((prev) => prev.filter((e) => e.id !== entryId));
               if (selectedEntry?.id === entryId) {
                 setSelectedEntry(null);
-                setNewText("");
+                setNewText('');
               }
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -180,23 +177,13 @@ const Journal = () => {
   };
 
   const renderEntryItem = ({ item }) => (
-    <View
-      style={[
-        styles.entryItem,
-        selectedEntry?.id === item.id && styles.selectedEntry,
-      ]}
-    >
+    <View style={[styles.entryItem, selectedEntry?.id === item.id && styles.selectedEntry]}>
       <TouchableOpacity onPress={() => selectEntry(item)} style={{ flex: 1 }}>
-        <Text style={styles.entryDate}>
-          {moment(item.created_at).format("MMM D, h:mm A")}
-        </Text>
+        <Text style={styles.entryDate}>{moment(item.created_at).format('MMM D, h:mm A')}</Text>
       </TouchableOpacity>
 
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <TouchableOpacity
-          onPress={() => selectEntry(item)}
-          style={{ marginRight: 12 }}
-        >
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity onPress={() => selectEntry(item)} style={{ marginRight: 12 }}>
           <Ionicons name="create-outline" size={18} color="#555" />
         </TouchableOpacity>
 
@@ -209,34 +196,29 @@ const Journal = () => {
 
   const handleNewEntry = () => {
     setSelectedEntry(null);
-    setNewText("");
+    setNewText('');
   };
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView style={styles.container}>
           {/* ▼▼▼ All your original JSX stays the same ▼▼▼ */}
-          <TouchableOpacity
-            onPress={toggleDropdown}
-            style={styles.dropdownToggle}
-          >
+          <TouchableOpacity onPress={toggleDropdown} style={styles.dropdownToggle}>
             <Ionicons
-              name={isDropdownOpen ? "chevron-up" : "chevron-down"}
+              name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
               size={24}
               color="#555"
             />
             <Text style={styles.dropdownLabel}>
-              {isDropdownOpen ? "Hide Past Entries" : "Show Past Entries"}
+              {isDropdownOpen ? 'Hide Past Entries' : 'Show Past Entries'}
             </Text>
           </TouchableOpacity>
 
-          <Animated.View
-            style={[styles.dropdownPanel, { height: dropdownHeight }]}
-          >
+          <Animated.View style={[styles.dropdownPanel, { height: dropdownHeight }]}>
             <FlatList
               data={entries}
               keyExtractor={(item) => item.id.toString()}
@@ -248,15 +230,8 @@ const Journal = () => {
 
           <View style={styles.editor}>
             <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={styles.newEntryButton}
-                onPress={handleNewEntry}
-              >
-                <MaterialIcons
-                  name="add-circle-outline"
-                  size={20}
-                  color="#196315"
-                />
+              <TouchableOpacity style={styles.newEntryButton} onPress={handleNewEntry}>
+                <MaterialIcons name="add-circle-outline" size={20} color="#196315" />
                 <Text style={styles.newEntryText}>New Entry</Text>
               </TouchableOpacity>
             </View>
@@ -273,7 +248,7 @@ const Journal = () => {
 
             <TouchableOpacity style={styles.saveButton} onPress={saveEntry}>
               <Text style={styles.saveButtonText}>
-                {selectedEntry ? "Update Entry" : "Save Entry"}
+                {selectedEntry ? 'Update Entry' : 'Save Entry'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -287,96 +262,96 @@ const Journal = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: '#FAFAFA',
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 12,
-    color: "#1f7442",
-    textAlign: "center",
+    color: '#1f7442',
+    textAlign: 'center',
     marginTop: 10,
   },
   dropdownToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 10,
-    backgroundColor: "#EAF8EA",
+    backgroundColor: '#EAF8EA',
   },
   dropdownLabel: {
     marginLeft: 6,
     fontSize: 16,
-    color: "#196315",
-    fontWeight: "500",
+    color: '#196315',
+    fontWeight: '500',
   },
   dropdownPanel: {
-    overflow: "hidden",
-    backgroundColor: "#F5F5F7",
+    overflow: 'hidden',
+    backgroundColor: '#F5F5F7',
     borderBottomWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     paddingHorizontal: 16,
   },
   entryItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderColor: "#eee",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    borderColor: '#eee',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   selectedEntry: {
-    backgroundColor: "#DFF6DD",
+    backgroundColor: '#DFF6DD',
     borderRadius: 6,
     paddingHorizontal: 6,
   },
   entryDate: {
     fontSize: 14,
-    color: "#333",
+    color: '#333',
   },
   editor: {
     flex: 1,
     padding: 20,
   },
   actionRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     marginBottom: 12,
   },
   newEntryButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EAF8EA",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EAF8EA',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
   },
   newEntryText: {
-    color: "#196315",
+    color: '#196315',
     marginLeft: 6,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     padding: 14,
     fontSize: 16,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
     borderRadius: 12,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     minHeight: 200,
   },
   saveButton: {
-    backgroundColor: "#196315",
+    backgroundColor: '#196315',
     padding: 14,
     borderRadius: 12,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 16,
   },
   saveButtonText: {
-    color: "#fff",
-    fontWeight: "600",
+    color: '#fff',
+    fontWeight: '600',
     fontSize: 16,
   },
 });

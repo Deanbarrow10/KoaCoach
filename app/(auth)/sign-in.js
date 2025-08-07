@@ -1,6 +1,6 @@
-import { supabase } from "../../lib/supabase";
-import { Alert } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { supabase } from '../../lib/supabase';
+import { Alert } from 'react-native';
+import { Link, useRouter } from 'expo-router';
 import {
   Text,
   TextInput,
@@ -9,15 +9,15 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import React from "react";
-import { MaterialIcons } from "@expo/vector-icons";
+} from 'react-native';
+import React from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function Page() {
   const router = useRouter();
 
-  const [emailAddress, setEmailAddress] = React.useState("");
-  const [password, setPassword] = React.useState("");
+  const [emailAddress, setEmailAddress] = React.useState('');
+  const [password, setPassword] = React.useState('');
   const [secureTextEntry, setSecureTextEntry] = React.useState(true);
 
   const onSignInPress = async () => {
@@ -27,15 +27,15 @@ export default function Page() {
     });
 
     if (error) {
-      Alert.alert("Login failed", error.message);
+      Alert.alert('Login failed', error.message);
     } else {
-      router.replace("/(home)");
+      router.replace('/(home)');
     }
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <View style={styles.header}>
@@ -45,12 +45,7 @@ export default function Page() {
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <MaterialIcons
-            name="email"
-            size={20}
-            color="#196315"
-            style={styles.inputIcon}
-          />
+          <MaterialIcons name="email" size={20} color="#196315" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             autoCapitalize="none"
@@ -63,12 +58,7 @@ export default function Page() {
         </View>
 
         <View style={styles.inputContainer}>
-          <MaterialIcons
-            name="lock"
-            size={20}
-            color="#196315"
-            style={styles.inputIcon}
-          />
+          <MaterialIcons name="lock" size={20} color="#196315" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             value={password}
@@ -82,7 +72,7 @@ export default function Page() {
             style={styles.eyeIcon}
           >
             <MaterialIcons
-              name={secureTextEntry ? "visibility" : "visibility-off"}
+              name={secureTextEntry ? 'visibility' : 'visibility-off'}
               size={20}
               color="#665"
             />
@@ -109,7 +99,7 @@ export default function Page() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     paddingHorizontal: 20,
   },
   header: {
@@ -118,26 +108,26 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: "bold",
-    color: "#196315",
+    fontWeight: 'bold',
+    color: '#196315',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: "#665",
+    color: '#665',
   },
   form: {
-    width: "100%",
+    width: '100%',
   },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 12,
     paddingHorizontal: 15,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: '#f8f8f8',
   },
   inputIcon: {
     marginRight: 10,
@@ -146,17 +136,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 15,
     fontSize: 16,
-    color: "#333",
+    color: '#333',
   },
   eyeIcon: {
     padding: 10,
   },
   signInButton: {
-    backgroundColor: "#196315",
+    backgroundColor: '#196315',
     paddingVertical: 15,
     borderRadius: 12,
     marginTop: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -166,24 +156,24 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   signInButtonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 20,
   },
   footerText: {
     fontSize: 16,
-    color: "#665",
+    color: '#665',
   },
   signUpLink: {
     fontSize: 16,
-    color: "#196315",
-    fontWeight: "bold",
+    color: '#196315',
+    fontWeight: 'bold',
   },
 });

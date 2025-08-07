@@ -1,7 +1,7 @@
-import "react-native-gesture-handler";
-import React, { useEffect, useState } from "react";
-import { Redirect, Stack } from "expo-router";
-import { supabase } from "../../lib/supabase"; // adjust path if needed
+import 'react-native-gesture-handler';
+import React, { useEffect, useState } from 'react';
+import { Redirect, Stack } from 'expo-router';
+import { supabase } from '../../lib/supabase'; // adjust path if needed
 
 export default function AuthRoutesLayout() {
   const [checking, setChecking] = useState(true);
@@ -37,16 +37,16 @@ export default function AuthRoutesLayout() {
         name="sign-in"
         options={{
           headerShown: true,
-          headerBackTitle: "Back",
-          title: "Log in",
+          headerBackTitle: 'Back',
+          title: 'Log in',
         }}
       />
       <Stack.Screen
         name="sign-up"
         options={{
           headerShown: true,
-          headerBackTitle: "Back",
-          title: "Sign up",
+          headerBackTitle: 'Back',
+          title: 'Sign up',
         }}
       />
     </Stack>

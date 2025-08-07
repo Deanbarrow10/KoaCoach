@@ -1,12 +1,12 @@
-import { View, Text, StyleSheet, SafeAreaView, Dimensions } from "react-native";
-import React, { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabase";
-import { Link } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
-import KoalaAnimation from "../components/KoalaAnimations";
-import { rewardLogin } from "../utils/wxp";
+import { View, Text, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { Link } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import KoalaAnimation from '../components/KoalaAnimations';
+import { rewardLogin } from '../utils/wxp';
 
-const { width, height } = Dimensions.get("window");
+const { width, height } = Dimensions.get('window');
 
 export default function AuthLandingPage() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -30,10 +30,7 @@ export default function AuthLandingPage() {
   // Splash animation when signed in
   if (isSignedIn && !splashDone) {
     return (
-      <LinearGradient
-        colors={["#3aa76b", "#1f7442", "#196315"]}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#3aa76b', '#1f7442', '#196315']} style={styles.gradient}>
         <SafeAreaView style={styles.splashContainer}>
           <KoalaAnimation type="jump" style={{ width: 280, height: 330 }} />
           <Text style={styles.splashTitle}>Koamigo</Text>
@@ -46,18 +43,12 @@ export default function AuthLandingPage() {
     <>
       {isSignedIn ? (
         <SafeAreaView
-          style={[
-            styles.container,
-            { justifyContent: "center", alignItems: "center" },
-          ]}
+          style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}
         >
           <Text style={styles.title}>Welcome Back</Text>
         </SafeAreaView>
       ) : (
-        <LinearGradient
-          colors={["#3aa76b", "#1f7442", "#196315"]}
-          style={styles.gradient}
-        >
+        <LinearGradient colors={['#3aa76b', '#1f7442', '#196315']} style={styles.gradient}>
           <SafeAreaView style={styles.container}>
             <View style={styles.content}>
               <KoalaAnimation type="wave" style={styles.koala} />
@@ -65,9 +56,7 @@ export default function AuthLandingPage() {
 
             <View style={styles.content}>
               <Text style={styles.title}>Koamigo</Text>
-              <Text style={styles.subtitle}>
-                Hey there! I'm here to help you thrive
-              </Text>
+              <Text style={styles.subtitle}>Hey there! I'm here to help you thrive</Text>
 
               <Link href="/(auth)/sign-up" style={styles.signupButton}>
                 <Text style={styles.signupText}>Sign up</Text>
@@ -89,13 +78,13 @@ const styles = StyleSheet.create({
   },
   splashContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   splashTitle: {
     fontSize: 36,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: 'bold',
+    color: '#fff',
     marginTop: 20,
   },
   container: {
@@ -108,44 +97,44 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 20,
   },
   title: {
     fontSize: 32,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 30,
-    color: "white",
+    color: 'white',
   },
   subtitle: {
     fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 40,
-    color: "white",
+    color: 'white',
   },
   signupButton: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 25,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loginButton: {
     marginTop: 12,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     paddingVertical: 12,
     paddingHorizontal: 38,
     borderRadius: 25,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   signupText: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
+    fontWeight: '600',
+    color: '#000',
   },
 });

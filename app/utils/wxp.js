@@ -1,9 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const WXP_KEY = "wxp";
-const LAST_LOGIN_KEY = "last_login";
-const LAST_JOURNAL_KEY = "last_journal";
-const STREAK_KEY = "streak";
+const WXP_KEY = 'wxp';
+const LAST_LOGIN_KEY = 'last_login';
+const LAST_JOURNAL_KEY = 'last_journal';
+const STREAK_KEY = 'streak';
 
 export const getWXP = async () => {
   const val = parseInt(await AsyncStorage.getItem(WXP_KEY));

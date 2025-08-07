@@ -3,7 +3,7 @@ services:
     name: therapist-backend
     env: python
     plan: free
-    buildCommand: ""
+    buildCommand: ''
     startCommand: gunicorn -w 4 -b 0.0.0.0:10000 app:app
     envVars:
       - key: OPENAI_API_KEY

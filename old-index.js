@@ -1,31 +1,20 @@
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  SafeAreaView,
-  Pressable,
-  Dimensions,
-} from "react-native";
+import { View, Text, Image, StyleSheet, SafeAreaView, Pressable, Dimensions } from 'react-native';
 
-import { Link } from "expo-router";
+import { Link } from 'expo-router';
 
-import { LinearGradient } from "expo-linear-gradient";
+import { LinearGradient } from 'expo-linear-gradient';
 
-const { width } = Dimensions.get("window");
-const { height } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function App() {
   return (
-    <LinearGradient
-      colors={["#e8f4f0", "#c5e1d3", "#97ceb3"]}
-      style={styles.gradient}
-    >
+    <LinearGradient colors={['#e8f4f0', '#c5e1d3', '#97ceb3']} style={styles.gradient}>
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
           <Image
             style={styles.logo}
-            source={require("../assets/images/main-logo.png")}
+            source={require('../assets/images/main-logo.png')}
             resizeMode="contain"
           />
         </View>
@@ -55,14 +44,14 @@ const styles = StyleSheet.create({
     // backgroundColor: "#b4c8bd",
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 8,
   },
   navBarLine: {
-    backgroundColor: "#000",
+    backgroundColor: '#000',
     height: 2,
     marginHorizontal: 0,
   },
@@ -76,45 +65,45 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 16,
-    color: "#000",
+    color: '#000',
   },
   content: {
     marginBottom: 100,
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 20,
   },
   title: {
     fontSize: 32,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 30,
-    color: "#000",
+    color: '#000',
   },
   subtitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 40,
-    color: "#000",
+    color: '#000',
   },
   signupButton: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 25,
   },
   loginButton: {
     marginTop: 12,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     paddingVertical: 12,
     paddingHorizontal: 38,
     borderRadius: 25,
   },
   signupText: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
+    fontWeight: '600',
+    color: '#000',
   },
 });

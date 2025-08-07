@@ -25,6 +25,7 @@ Koamigo gamifies your wellness routine by introducing a points-based system that
 ## 🛠️ Getting Started
 
 ### Prerequisites
+
 - Node.js (v14 or higher)
 - npm or yarn
 - Python 3.x
@@ -33,23 +34,25 @@ Koamigo gamifies your wellness routine by introducing a points-based system that
 ### Frontend Setup
 
 1. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 2. **Start the app**
+
    ```bash
    npx expo start
    ```
 
 3. **Run on your device**
-   
+
    In the output, you'll find options to open the app in a:
    - [Development build](https://docs.expo.dev/develop/development-builds/introduction/)
    - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
    - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
    - [Expo Go](https://expo.dev/go) app on your phone
-  
+
 ### Backend Setup
 
 The Flask backend is hosted on Render for production deployment. The live API endpoints are automatically deployed when changes are pushed to the main branch.
@@ -67,7 +70,9 @@ The Flask backend is hosted on Render for production deployment. The live API en
 This project uses [file-based routing](https://docs.expo.dev/router/introduction). Start developing by editing the files inside the **app** directory.
 
 ### Get a fresh project
+
 When you're ready to start from scratch, run:
+
 ```bash
 npm run reset-project
 ```
@@ -88,4 +93,4 @@ To learn more about the technologies used in this project:
 
 ---
 
-*Start your wellness journey with Koa today! 🌱*
+_Start your wellness journey with Koa today! 🌱_

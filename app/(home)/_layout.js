@@ -1,26 +1,22 @@
-import "react-native-gesture-handler";
-import { Tabs } from "expo-router/tabs";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { FontAwesome6 } from "@expo/vector-icons";
+import 'react-native-gesture-handler';
+import { Tabs } from 'expo-router/tabs';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { FontAwesome6 } from '@expo/vector-icons';
 
 export default function Layout() {
   return (
-    <Tabs
-      screenOptions={{ tabBarActiveTintColor: "#196315", headerShown: false }}
-    >
+    <Tabs screenOptions={{ tabBarActiveTintColor: '#196315', headerShown: false }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="home" color={color} size={size} />
-          ),
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => <FontAwesome name="home" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="wellness"
         options={{
-          title: "Explore",
+          title: 'Explore',
           tabBarIcon: ({ color, size }) => (
             <FontAwesome name="lightbulb-o" color={color} size={size} />
           ),
@@ -29,10 +25,8 @@ export default function Layout() {
       <Tabs.Screen
         name="therapist"
         options={{
-          title: "Koa",
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome6 name="paw" color={color} size={size} />
-          ),
+          title: 'Koa',
+          tabBarIcon: ({ color, size }) => <FontAwesome6 name="paw" color={color} size={size} />,
         }}
       />
       {/* <Tabs.Screen
@@ -47,19 +41,15 @@ export default function Layout() {
       <Tabs.Screen
         name="journal"
         options={{
-          title: "Journal",
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome6 name="pencil" color={color} size={size} />
-          ),
+          title: 'Journal',
+          tabBarIcon: ({ color, size }) => <FontAwesome6 name="pencil" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="XPPage"
         options={{
-          title: "wXP",
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome6 name="leaf" color={color} size={size} />
-          ),
+          title: 'wXP',
+          tabBarIcon: ({ color, size }) => <FontAwesome6 name="leaf" color={color} size={size} />,
         }}
       />
     </Tabs>

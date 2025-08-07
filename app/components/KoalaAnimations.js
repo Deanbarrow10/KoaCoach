@@ -1,12 +1,12 @@
-import React from "react";
-import { View, Image, StyleSheet } from "react-native";
+import React from 'react';
+import { View, Image, StyleSheet } from 'react-native';
 
 // Map animation types to GIFs
 const gifMap = {
-  hi: require("../../assets/animations/koa-hi.gif"),
-  jump: require("../../assets/animations/koa-jump.gif"),
-  squat: require("../../assets/animations/koa-squat.gif"),
-  wave: require("../../assets/animations/koa-wave.gif"),
+  hi: require('../../assets/animations/koa-hi.gif'),
+  jump: require('../../assets/animations/koa-jump.gif'),
+  squat: require('../../assets/animations/koa-squat.gif'),
+  wave: require('../../assets/animations/koa-wave.gif'),
 };
 
 // Default width/height per type
@@ -17,7 +17,7 @@ const defaultStyles = {
   wave: { width: 250, height: 320 },
 };
 
-const KoalaAnimation = ({ type = "hi", style = {} }) => {
+const KoalaAnimation = ({ type = 'hi', style = {} }) => {
   const source = gifMap[type] || gifMap.hi;
   const baseStyle = defaultStyles[type] || defaultStyles.hi;
 
@@ -30,8 +30,8 @@ const KoalaAnimation = ({ type = "hi", style = {} }) => {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
