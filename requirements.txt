@@ -7,3 +7,4 @@ agentops
 aiohttp
 requests
 openai-agents
+supabase

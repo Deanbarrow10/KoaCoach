@@ -62,6 +62,15 @@ export default function Layout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome6 name="gear" color={color} size={size} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

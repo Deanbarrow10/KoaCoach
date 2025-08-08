@@ -13,10 +13,20 @@ from twilio.rest import Client
 from sendmail import MailSender
 import re
 import openai
+from supabase import create_client
 from dotenv import load_dotenv
 load_dotenv()
 
 
+# load Supabase service role key (secure)
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+if not SUPABASE_SERVICE_ROLE_KEY:
+    print("❌ SUPABASE_SERVICE_ROLE_KEY not set in environment")
+    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for account deletion")
+
+supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 # sets up Twilio client using environment variables
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
@@ -380,3 +390,37 @@ async def web():
 def echo():
    data = request.json
    return jsonify({'you_sent': data})
+
+
+@app.route('/api/delete-account', methods=['POST'])
+def delete_account():
+    try:
+        # 1. get Authorization header from request
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Missing or invalid Authorization header"}), 401
+
+        access_token = auth_header.split(" ")[1]
+
+        # 2. get the current user from the token
+        user = supabase_admin.auth.get_user(access_token)
+        if not user or not user.user:
+            return jsonify({"error": "Invalid user"}), 401
+
+        user_id = user.user.id
+
+        # 3. delete all user-related data
+        supabase_admin.table("journal_entries").delete().eq("user_id", user_id).execute()
+        # repeat for any other tables where you store user data
+        # supabase_admin.table("messages").delete().eq("user_id", user_id).execute()
+        # supabase_admin.table("streaks").delete().eq("user_id", user_id).execute()
+
+        # 4. delete the user from auth
+        supabase_admin.auth.admin.delete_user(user_id)
+
+        return jsonify({"ok": True, "message": "Account and all data deleted"})
+
+    except Exception as e:
+        print("[DELETE ACCOUNT ERROR]", e)
+        return jsonify({"error": str(e)}), 500
+
