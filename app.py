@@ -14,19 +14,23 @@ from sendmail import MailSender
 import re
 import openai
 from supabase import create_client
+# new import statements
+from flask_cors import CORS
+import requests
+import json
 from dotenv import load_dotenv
 load_dotenv()
 
 
 # load Supabase service role key (secure)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+# SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
-if not SUPABASE_SERVICE_ROLE_KEY:
-    print("❌ SUPABASE_SERVICE_ROLE_KEY not set in environment")
-    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for account deletion")
+# if not SUPABASE_SERVICE_ROLE_KEY:
+#     print("❌ SUPABASE_SERVICE_ROLE_KEY not set in environment")
+#     raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for account deletion")
 
-supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+# supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 # sets up Twilio client using environment variables
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
@@ -106,211 +110,164 @@ Type: {crisis_type}
 
 # creates flask web server
 app = Flask(__name__)
+# enable cors
+CORS(app)
 
 
 # initializes web search tool for therapist matching
 web_search = WebSearchTool()
+# ----------------------- fitness agents -----------------------
+# adds workout, personal trainer, form & safety, nutrition, and sleep coaches
+# update: every coach MUST use web_search for evidence + citations
 
+workout_coach_agent = Agent(
+    name="workout_coach_agent",
+    instructions="""
+You are Koa's Workout Coach. Design safe, scalable strength and conditioning plans using evidence.
 
-# # defines the diagnostic agent using DSM-5-TR criteria
-# diagnostic_agent = Agent(
-#    name="diagnostic_agent",
-#    instructions="""
-#    You are a diagnostic assistant based on the DSM-5-TR criteria.
-  
-#    When a user describes their mental health symptoms, analyze the language and match patterns to DSM-5-TR definitions.
-#    Clearly explain the possible conditions based on their description (e.g., anxiety, depression), but avoid medical diagnosis unless explicitly asked.
-  
-#    Include:
-#    - A brief summary of the potential issue
-#    - The DSM-5-TR category it might fall under
-#    - Encouragement to consult a licensed professional for a full evaluation
-  
-#    Ask a follow-up question to clarify symptom duration, frequency, or impact on daily life.
-#    """,
-#    model="gpt-3.5-turbo",
-#    model_settings=ModelSettings(
-#        temperature=0.5,
-#        max_tokens=250
-#    ),
-# )
+RESEARCH & CITATIONS (MANDATORY)
+- Before finalizing ANY advice or plan, call the web_search tool to find supporting peer‑reviewed sources or authoritative org guidelines.
+- Prefer systematic reviews, RCTs, meta‑analyses, and consensus/position stands (ACSM, WHO, DHHS).
+- Summarize findings in your own words. Do NOT paste long quotes.
+- End every response with 1–3 compact citations formatted: Author, Year, Journal (or Org). DOI if available. No raw URLs.
 
+OUTPUT
+- concise blocks: days, exercises, sets×reps, rest, target RPE, weekly progression
+- tailor to goal, time, equipment, experience; include 1 regression + 1 progression per main lift
+- default rest guidance (heavy 2–5 min; accessories 60–120 s) with 1‑line rationale
 
-# defines the therapist matching agent that uses web search
-therapist_match_agent = Agent(
-   name="therapist_match_agent",
-   instructions="""
-   You are a therapist matching assistant.
-
-
-   Always use the web_search tool to find real therapists who match the user's needs. Do not make up results or guess from memory.
-
-
-   Before performing any search:
-   - Make sure you know the user's location (such as a city or zip code).
-   - If the location is missing, ask: 
-   "Can you tell me your city or zip code so I can find therapists near you?"
-
-
-   When you summarize results, take into account:
-   - Type of therapy (CBT, EMDR, talk therapy, etc.)
-   - Location or telehealth availability
-   - Language, gender, or cultural fit
-
-
-   For each recommended therapist, provide:
-   - Name and credentials
-   - Specializations
-   - Location or telehealth status
-   - Phone number and email if available
-   - A short, conversational description of their approach
-
-
-   Only include up to 3 therapist suggestions per response.
-
-
-   Here is an example of the ideal response format:
-
-
-   "Dr. Amanda Lee is a licensed psychologist who specializes in cognitive behavioral therapy for anxiety and trauma. 
-   She offers both in-person sessions in Chicago and virtual appointments. 
-   You can reach her at 555-234-7890 or amanda.lee@example.com. 
-   Would you prefer a therapist who offers evening hours or works on weekends?"
-
-
-   Do not include any URLs, website links, or Markdown formatting like asterisks or brackets. DO NOT RESPOND WITH ASTERISKS. DO NOT RESPOND WITH ANY links THAT END WITH 'utm_source=openai'.
-
-
-   Do not wrap text in '**', '[]'.
-
-
-   You must write as if your response will be read aloud by a voice assistant.
-
-
-   Speak in a smooth, natural voice-ready format.
-
-
-   At the end of your response, ask a follow-up question about preferences such as insurance coverage or therapy goals.
-
-
-   Never respond without using the web_search tool first. DO NOT MAKE UP THERAPISTS. USE THE WEB_SEARCH TOOL. Try to include the therapist contact information.
-
-
-   I want you to actually find real therapists. Not just clinics.
-   """,
-   tools=[web_search],
-   model_settings=ModelSettings(
-       temperature=0.5,
-       max_tokens=250
-   ),
+GUARDRAILS
+- avoid medical advice; if user mentions pain/injury/condition, state you can’t provide medical advice and suggest consulting a clinician.
+""",
+    model_settings=ModelSettings(temperature=0.4, max_tokens=600),
+    tools=[web_search],
 )
 
+personal_trainer_coach_agent = Agent(
+    name="personal_trainer_coach_agent",
+    instructions="""
+You are Koa's Personal Trainer Coach. Convert user goals into a 12‑week lifestyle‑fit roadmap.
 
-# defines the emotional support agent for providing encouragement and planning
-emotional_support_agent = Agent(
-   name="emotional_support_agent",
-   instructions="""
-   When communicating with users seeking support, prioritize these evidence-based techniques that are strongly associated with reliable improvement:
+RESEARCH & CITATIONS (MANDATORY)
+- Always run web_search to confirm public‑health recommendations and any coaching claims you reference.
+- Prefer WHO guidelines, U.S. Physical Activity Guidelines, and behavior‑change literature (habits/adherence).
+- End with 1–2 citations (Author/Org, Year, Source). No raw URLs.
 
+OUTPUT
+- (1) 12‑week overview with mesocycles + 1 deload week
+- (2) weekly template (cardio + strength + mobility)
+- (3) 2 tiny habits (cue→behavior→reward)
+- (4) check‑in metric
+- (5) busy‑day fallback (10–15 min)
+- align with 150–300 min/wk moderate or 75–150 min vigorous + strength 2×/wk (verify via web_search each time)
 
-   1. THERAPEUTIC PRAISE: Regularly acknowledge user progress, efforts, and strengths. Use specific, genuine praise that reinforces positive behaviors and thinking patterns.
-
-
-   2. FUTURE PLANNING: Guide users to develop concrete, actionable plans. Help them anticipate challenges and create specific strategies for implementing healthy behaviors and coping mechanisms.
-
-
-   3. HIGHLIGHT PERCEPTIONS OF CHANGE: Draw attention to positive changes the user has made or experienced, even small ones. Help them recognize their progress and changing perspectives.
-
-
-   4. EMPHASIZE CHANGE METHODS: Focus conversations on specific techniques and methods that facilitate change. Provide clear, practical tools and strategies users can implement.
-
-
-   5. SET CLEAR AGENDAS: Structure conversations with clear objectives. Begin interactions by establishing what will be discussed and what outcomes are desired.
-
-
-   6. ELICIT AND GIVE FEEDBACK: Regularly ask for the user's thoughts and reactions, then provide constructive, specific feedback on their approaches and ideas.
-
-
-   7. REVIEW HOMEWORK: Follow up on previously suggested activities or practices and discuss outcomes and learnings.
-
-
-   For each interaction, try to base your response on the following techniques. You are to provide emotional support to the user.
-  
-   Always mention that you should try seeking a therapist on our platform in a subtle manner. Do not be overly pushy. Mention in a subtle way.
-
-
-   Do not include category labels, headings, or section titles like "Therapeutic Praise:", "Future Planning:", or "Highlight Perceptions of Change:". 
-
-
-   Instead, speak naturally in full sentences as if you're talking to the user directly in a conversation. Avoid labeling your statements or organizing them under topics — just respond as a supportive therapist would.
-   """,
-   model="gpt-3.5-turbo",
-   model_settings=ModelSettings(
-       temperature=0.5,
-       max_tokens=250
-   ),
+GUARDRAILS
+- practical, time‑anchored advice; no medical claims.
+""",
+    model_settings=ModelSettings(temperature=0.5, max_tokens=600),
+    tools=[web_search],
 )
 
+form_safety_coach_agent = Agent(
+    name="form_safety_coach_agent",
+    instructions="""
+You are Koa's Form & Safety Coach. Provide technique cues, common mistakes, and safer regressions/progressions.
 
-# defines the crisis agent for emergency situations
-crisis_agent = Agent(
-   name="crisis_agent",
-   instructions="""
-   You are a crisis triage agent.
+DISCLAIMER (ALWAYS FIRST LINE)
+"Koa isn’t a medical doctor and doesn’t provide medical advice. If you have pain, injury, or a condition, consult a qualified clinician."
 
+RESEARCH & CITATIONS (MANDATORY)
+- Use web_search to validate general technique/safety principles (ACSM, national guidelines, reputable orgs).
+- End with 1–2 citations (Author/Org, Year, Source).
 
-   If a user mentions self-harm, suicidal ideation, or extreme distress, respond with calm empathy.
-  
-   Do not try to diagnose or counsel. Instead:
-   - Validate the person’s pain
-   - Provide the Suicide Prevention Hotline (988 in the US)
-   - Offer grounding statements and recommend immediate help
-  
-   Ask: “Would you like me to connect you with professional resources or support lines?”
+OUTPUT (per movement)
+- 3–5 short cues
+- 1 regression + 1 progression
+- common mistakes
+- stop‑criteria (what sensations mean stop)
+- brief warm‑up suggestion
 
-
-   Please note that I am not a licensed therapist. I recommend you seek professional help.
-
-
-   """,
-   model="gpt-3.5-turbo",
-   model_settings=ModelSettings(
-       temperature=0.5,
-       max_tokens=250
-   ),
+GUARDRAILS
+- plain, actionable language; no diagnosis or treatment.
+""",
+    model_settings=ModelSettings(temperature=0.4, max_tokens=500),
+    tools=[web_search],
 )
 
+nutrition_coach_agent = Agent(
+    name="nutrition_coach_agent",
+    instructions="""
+You are Koa's Nutrition Coach. Provide practical, food‑first guidance aligned to build/cut/maintain.
 
-# defines the supervisor agent that routes users to the appropriate specialist
-therapy_supervisor_agent = Agent(
-   name="therapy_supervisor_agent",
-   instructions="""
-   You are a comprehensive therapist assistant who routes users to the correct specialist.
-   
-   IMPORTANT: You are NOT a medical professional and cannot provide medical diagnoses, mental health assessments, or clinical evaluations. If users ask about symptoms or conditions, encourage them to speak with a licensed mental health professional.
+RESEARCH & CITATIONS (MANDATORY)
+- Run web_search for protein targets and dietary guidance you reference, prioritizing peer‑reviewed reviews/meta‑analyses.
+- End with 2–3 citations (Author, Year, Journal; DOI if available). No raw URLs.
 
+OUTPUT
+- daily protein target (range) + per‑meal target in plain language (e.g., “about 20–40 g per meal”)
+- simple day template (B/L/D + 2 snacks) with high‑protein options
+- quick grocery list
+- 1–2 coaching tips (meal prep, swaps)
+- when noting ~1.6 g/kg/day with RT, also give an easy non‑kg phrasing
 
-   Based on the user's message:
-   1. If they describe emotional distress or need a listening ear → hand off to emotional_support_agent
-   2. If they describe symptoms or want to understand what they're going through → provide supportive listening and encourage them to speak with a licensed professional. Do NOT attempt to diagnose or assess their condition.
-   3. If they ask for help finding a therapist → hand off to therapist_match_agent
-   4. If they express thoughts of self-harm or crisis → hand off to crisis_agent
-
-
-   For general wellness conversations, start with validation and ask one clarifying question to route correctly.
-   Maintain a calm, supportive tone at all times.
-   
-   If users ask about specific mental health conditions, symptoms, or diagnoses, respond with: "I'm not a medical professional and cannot provide medical advice or diagnoses. I'd be happy to help you find a licensed therapist who can properly evaluate your situation."
-
-   """,
-   model_settings=ModelSettings(
-       temperature=0.5,
-       max_tokens=250
-   ),
-   tools=[web_search],
-   handoffs=[emotional_support_agent,
-             therapist_match_agent, crisis_agent],
+GUARDRAILS
+- avoid medical nutrition therapy; avoid unsafe deficits; note supplement caution.
+""",
+    model_settings=ModelSettings(temperature=0.5, max_tokens=650),
+    tools=[web_search],
 )
+
+sleep_coach_agent = Agent(
+    name="sleep_coach_agent",
+    instructions="""
+You are Koa's Sleep Coach. Improve recovery and performance via consistent sleep routines.
+
+RESEARCH & CITATIONS (MANDATORY)
+- Use web_search to verify sleep duration and hygiene recommendations (AASM/SRS consensus, reputable orgs).
+- End with 1–2 citations (Author/Org, Year, Source).
+
+OUTPUT
+- target sleep/wake schedule
+- 3 habit anchors (AM light, PM wind‑down, caffeine cutoff)
+- 2 environment tweaks (dark, cool, quiet)
+- contingency plan after a poor night (reduce intensity, prioritize technique)
+
+GUARDRAILS
+- aim for 7+ h/night (unless medically directed otherwise); avoid medical claims.
+""",
+    model_settings=ModelSettings(temperature=0.4, max_tokens=500),
+    tools=[web_search],
+)
+
+fitness_supervisor_agent = Agent(
+    name="fitness_supervisor_agent",
+    instructions="""
+You are Koa's Fitness Supervisor. Route requests to the right specialist and ensure research‑backed answers.
+
+ROUTING
+- "plan, program, split, progression, sets, reps, rest, equipment, time" → workout_coach_agent
+- "long‑term, routine, schedule, habit, 12‑week, periodize, lifestyle" → personal_trainer_coach_agent
+- "form, technique, how to do, hurts, knee valgus, regression, progression" → form_safety_coach_agent
+- "protein, calories, macros, meal, recipe, grocery, cut, bulk" → nutrition_coach_agent
+- "sleep, bedtime, wake time, jet lag, recovery, caffeine" → sleep_coach_agent
+
+POLICY
+- If user mentions pain/injury/medical condition, reply that we can’t provide medical advice and recommend a qualified clinician.
+- Each specialist MUST call web_search before finalizing and MUST include citations at the end.
+- Keep a friendly, coach‑like tone.
+""",
+    model_settings=ModelSettings(temperature=0.4, max_tokens=250),
+    handoffs=[
+        workout_coach_agent,
+        personal_trainer_coach_agent,
+        form_safety_coach_agent,
+        nutrition_coach_agent,
+        sleep_coach_agent
+    ],
+)
+# --------------------- end fitness agents ---------------------
+
+
 
 
 
@@ -350,7 +307,7 @@ async def therapist():
 
 
    # runs the supervisor agent to generate reply
-   result = await Runner.run(therapy_supervisor_agent, prompt)
+   result = await Runner.run(fitness_supervisor_agent, prompt)
    response_text = result.final_output
 
 
@@ -424,3 +381,68 @@ def delete_account():
         print("[DELETE ACCOUNT ERROR]", e)
         return jsonify({"error": str(e)}), 500
 
+# analyzes a meal photo and returns 1–3 options
+@app.route('/api/analyze-food', methods=['POST'])
+def analyze_food():
+    try:
+        data = request.get_json(force=True) or {}
+        image_b64 = data.get('image_base64')
+        if not image_b64:
+            return jsonify({"error": "missing image_base64"}), 400
+
+        # build data url for vision
+        data_url = f"data:image/jpeg;base64,{image_b64}"
+
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "you are a nutrition assistant. identify the primary food(s) in the photo. "
+                        "return an object with a single key 'options' whose value is an array (length 1-3). "
+                        "each option must have: label (string), serving (string), serving_grams (number), "
+                        "calories (number), protein (number), carbs (number), fat (number), confidence (0..1). "
+                        "respond strictly as JSON, no prose."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "analyze this meal photo and output the JSON object."},
+                        {"type": "image_url", "image_url": {"url": data_url}},
+                    ],
+                },
+            ],
+            "temperature": 0.0,
+            "max_tokens": 400,
+            "response_format": {"type": "json_object"},
+        }
+
+        r = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {openai.api_key}", "Content-Type": "application/json"},
+            json=payload,
+            timeout=60,
+        )
+        r.raise_for_status()
+        content = r.json()["choices"][0]["message"]["content"]
+
+        try:
+            parsed = json.loads(content)
+            options = parsed.get("options", [])
+        except Exception as e:
+            print("[parse error]", e, content[:200])
+            options = []
+
+
+        return jsonify({"options": options})
+
+    except requests.HTTPError as e:
+        return jsonify({"error": "vision_failed", "detail": str(e), "body": getattr(e, 'response', None).text if getattr(e, 'response', None) else ""}), 502
+    except Exception as e:
+        return jsonify({"error": "server_error", "detail": str(e)}), 500
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5001, debug=True)

@@ -12,93 +12,100 @@ import {
 
 const { width } = Dimensions.get("window");
 
+// switches wellness trivia to fitness fundamentals quiz
 const quizData = [
   {
     question:
-      'What brain chemical is known as the "happiness neurotransmitter"?',
-    options: ["Adrenaline", "Serotonin", "Caffeine", "Melatonin"],
+      "How much protein per meal best supports muscle protein synthesis for most adults?",
+    options: ["10 g", "20–40 g", "60 g", "80 g"],
     correctAnswerIndex: 1,
     funFact:
-      "Serotonin helps regulate mood, sleep, and appetite. Low levels are linked to depression - that's why sunlight and exercise boost your mood!",
+      "aim for about 20–40 grams of protein in a meal to maximize muscle growth — roughly a palm-sized portion of chicken, fish, or tofu for most adults",
   },
   {
-    question:
-      "How long can your brain hold information in short-term memory without rehearsal?",
-    options: ["2 minutes", "15-30 seconds", "5 minutes", "1 hour"],
-    correctAnswerIndex: 1,
-    funFact:
-      "This is why you forget someone's name immediately after meeting them! Your brain needs repetition or emotional connection to move memories to long-term storage.",
-  },
-  {
-    question:
-      "Which color is scientifically proven to reduce stress and anxiety?",
-    options: ["Red", "Yellow", "Green", "Purple"],
+    question: "What’s the main purpose of a warm-up before exercise?",
+    options: [
+      "Burn extra calories",
+      "Prevent muscle soreness",
+      "Increase blood flow and prepare the body for activity",
+      "Make workouts longer",
+    ],
     correctAnswerIndex: 2,
     funFact:
-      "Green reduces eye strain and has a calming effect because it's the color our eyes process most easily. This is why hospitals often use green!",
+      "a proper warm-up raises muscle temperature, improves joint mobility, and primes the nervous system for better performance and reduced injury risk.",
   },
   {
     question:
-      "What percentage of your dreams do you typically forget by morning?",
-    options: ["25%", "50%", "75%", "95%"],
+      "Which rep range is commonly used for muscle hypertrophy (building size)?",
+    options: ["1–3 reps", "6–12 reps", "15–25 reps", "30–50 reps"],
+    correctAnswerIndex: 1,
+    funFact:
+      "6–12 reps works well when sets end close to failure; total volume and consistency matter most.",
+  },
+  {
+    question:
+      "How long should you typically rest between heavy strength sets (squat, deadlift) for best performance?",
+    options: ["10–30 seconds", "30–60 seconds", "2–5 minutes", "8–10 minutes"],
+    correctAnswerIndex: 2,
+    funFact:
+      "2–5 minutes restores more phosphocreatine so you can lift heavier and maintain quality across sets.",
+  },
+  {
+    question: "Which of the following is a complete protein source?",
+    options: ["Rice", "Beans", "Eggs", "Peanuts"],
+    correctAnswerIndex: 2,
+    funFact:
+      "complete proteins have all 9 essential amino acids—eggs, dairy, fish, and soy qualify; rice + beans together also complement each other.",
+  },
+  {
+    question:
+      "When does delayed onset muscle soreness (DOMS) usually peak after a tough workout?",
+    options: [
+      "Immediately after",
+      "At 12 hours only",
+      "24–72 hours later",
+      "One week later",
+    ],
+    correctAnswerIndex: 2,
+    funFact:
+      "eccentric movements (like lowering a squat) tend to cause more DOMS—soreness isn’t required for progress.",
+  },
+  {
+    question:
+      "About how many daily steps are linked with lower all-cause mortality in adults?",
+    options: ["3,000", "5,000", "7,000–8,000", "15,000"],
+    correctAnswerIndex: 2,
+    funFact:
+      "7–8k steps shows strong benefits for many people—add some brisk pace to boost cardio health further.",
+  },
+  {
+    question:
+      "How much sleep do most active adults need for recovery and performance?",
+    options: ["4–5 hours", "6 hours exactly", "7–9 hours", "10–12 hours"],
+    correctAnswerIndex: 2,
+    funFact:
+      "sleep drives hormone regulation, tissue repair, and learning of motor skills—protect it like a workout.",
+  },
+  {
+    question:
+      "What’s the primary fuel for high-intensity exercise (sprints, heavy sets)?",
+    options: ["Fat", "Carbohydrates", "Protein", "Vitamins"],
+    correctAnswerIndex: 1,
+    funFact:
+      "carbs power fast efforts via glycogen—pair protein with carbs post-workout to recover and rebuild.",
+  },
+  {
+    question:
+      "What’s the most reliable way to keep getting stronger over time?",
+    options: [
+      "Random new workouts daily",
+      "Always train to failure",
+      "Copy influencers exactly",
+      "Progressive overload (increase load, reps, or sets gradually)",
+    ],
     correctAnswerIndex: 3,
     funFact:
-      "Dreams help process emotions and memories, but we forget most of them because the brain chemicals needed for memory formation are turned off during REM sleep!",
-  },
-  {
-    question: "How long does it take to form a first impression of someone?",
-    options: ["30 seconds", "5 minutes", "100 milliseconds", "2 minutes"],
-    correctAnswerIndex: 2,
-    funFact:
-      "Your brain makes snap judgments in less than a tenth of a second! This helped our ancestors quickly identify friend or foe, but can create unconscious bias today.",
-  },
-  {
-    question:
-      "What's the name for your body's automatic 'fight or flight' response?",
-    options: [
-      "Sympathetic nervous system",
-      "Digestive system",
-      "Immune system",
-      "Circulatory system",
-    ],
-    correctAnswerIndex: 0,
-    funFact:
-      "This system evolved to help you escape predators, but now it activates for work emails and traffic jams! Learning to calm it is key to managing modern stress.",
-  },
-  {
-    question: "How many basic human emotions do psychologists agree on?",
-    options: ["3", "6", "10", "27"],
-    correctAnswerIndex: 1,
-    funFact:
-      "The six basic emotions are happiness, sadness, anger, fear, surprise, and disgust. All other emotions are combinations or variations of these!",
-  },
-  {
-    question: "What's the most effective way to remember new information?",
-    options: [
-      "Reading it over and over",
-      "Highlighting important parts",
-      "Teaching it to someone else",
-      "Writing it down once",
-    ],
-    correctAnswerIndex: 2,
-    funFact:
-      "The 'teaching effect' forces your brain to organize and simplify information, creating stronger neural pathways. That's why study groups work so well!",
-  },
-  {
-    question:
-      "Your brain uses approximately what percentage of your body's total energy?",
-    options: ["5%", "20%", "35%", "50%"],
-    correctAnswerIndex: 1,
-    funFact:
-      "Despite being only 2% of your body weight, your brain uses 20% of your energy! This is why good nutrition and sleep are so important for mental clarity and mood.",
-  },
-  {
-    question:
-      "Practicing gratitude for just 2 weeks can increase happiness by how much?",
-    options: ["5%", "25%", "50%", "75%"],
-    correctAnswerIndex: 1,
-    funFact:
-      "Gratitude literally rewires your brain! It increases activity in the hypothalamus (stress regulation) and dopamine production (pleasure and motivation).",
+      "small, steady increases plus deload weeks prevent plateaus and reduce injury risk—consistency wins.",
   },
 ];
 
@@ -140,7 +147,7 @@ const ExploreQuizScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>Psychology Fun Facts 🎉</Text>
+        <Text style={styles.title}>Fitness Fun Facts 🍎</Text>
         <Text style={styles.question}>{current.question}</Text>
         {current.options.map((option, index) => {
           const isCorrect = index === current.correctAnswerIndex;

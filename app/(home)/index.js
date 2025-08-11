@@ -40,18 +40,19 @@ export default function HomePage() {
             resizeMode="contain"
           />
 
-          <Text style={styles.cardTitle}>Wellness Coach</Text>
+          <Text style={styles.cardTitle}>Fitness Coach</Text>
           <Text style={styles.cardDescription}>
-            Koa is your personalized wellness coach, helping you achieve your
-            goals and improve your overall well-being.
+            Koa is your personalized fitness coach, helping you achieve your
+            goals and improve your overall fitness.
           </Text>
         </View>
 
         <View style={styles.card}>
           <FontAwesome5 name="hand-holding-heart" size={40} color="#196315" />
-          <Text style={styles.cardTitle}>Mindfulness</Text>
+          <Text style={styles.cardTitle}>Consistency</Text>
           <Text style={styles.cardDescription}>
-            Koa helps you stay present and focused, reducing stress and anxiety.
+            Koa helps you stay consistent and motivated, guiding your fitness
+            journey.
           </Text>
         </View>
 

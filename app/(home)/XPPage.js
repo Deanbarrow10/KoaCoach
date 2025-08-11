@@ -63,22 +63,22 @@ const XPPage = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Your Wellness XP</Text>
+      <Text style={styles.title}>Your Fitness XP</Text>
 
-      {showConfetti && <Text style={styles.title}>🎉 +1 wXP!</Text>}
+      {showConfetti && <Text style={styles.title}>🎉 +1 HP!</Text>}
 
       <KoalaAnimation type="hi" style={styles.koala} />
 
       <View style={styles.statsContainer}>
         <Text style={styles.level}>🏅 Level {level}</Text>
-        <Text style={styles.stat}>🌿 wXP: {wxp}</Text>
+        <Text style={styles.stat}>💪 HP: {wxp}</Text>
         <Text style={styles.stat}>🔥 Streak: {streak} days</Text>
 
         {/* XP Progress Bar */}
         <View style={styles.barBackground}>
           <View style={[styles.barFill, { width: `${(wxp % 10) * 10}%` }]} />
         </View>
-        <Text style={styles.xpText}>{wxp % 10}/10 reached</Text>
+        <Text style={styles.xpText}>{wxp % 10}/10 HP reached</Text>
       </View>
 
       {/* Koa Kart Unlockables */}

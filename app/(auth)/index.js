@@ -5,6 +5,7 @@ import { Link } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import KoalaAnimation from "../components/KoalaAnimations";
 import { rewardLogin } from "../utils/wxp";
+import { Pressable } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
@@ -69,12 +70,17 @@ export default function AuthLandingPage() {
                 Hey there! I'm here to help you thrive
               </Text>
 
-              <Link href="/(auth)/sign-up" style={styles.signupButton}>
-                <Text style={styles.signupText}>Sign up</Text>
-              </Link>
-              <Link href="/(auth)/sign-in" style={styles.loginButton}>
-                <Text style={styles.signupText}>Log in</Text>
-              </Link>
+              <Pressable style={styles.signupButton}>
+                <Link href="/(auth)/sign-up" style={styles.signupText}>
+                  Sign up
+                </Link>
+              </Pressable>
+
+              <Pressable style={styles.loginButton}>
+                <Link href="/(auth)/sign-in" style={styles.signupText}>
+                  Log in
+                </Link>
+              </Pressable>
             </View>
           </SafeAreaView>
         </LinearGradient>

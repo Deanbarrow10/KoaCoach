@@ -3,7 +3,7 @@
  *  and plays AI-generated responses with Google TTS
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   TextInput,
@@ -16,8 +16,6 @@ import {
   Animated,
   Easing,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -47,11 +45,11 @@ const languageNames = {
 
 // stores current TTS sound
 let currentTTSSound = null;
-
 let loadingSound = null;
 
 // backend URL
-const BACKEND_URL = "https://koamigo.fly.dev";
+// const BACKEND_URL = "https://koamigo.fly.dev";
+const BACKEND_URL = "http://localhost:5001";
 
 const TherapistChat = () => {
   // manages state for chat messages and user interaction
@@ -65,6 +63,9 @@ const TherapistChat = () => {
     interests: [],
     pronouns: "",
   });
+
+  // list ref for autoscroll
+  const listRef = useRef(null);
 
   // initializes animation value for recording pulse effect
   const pulseAnim = useState(new Animated.Value(1))[0];
@@ -237,6 +238,12 @@ const TherapistChat = () => {
         ...prev,
         { role: "assistant", content: cleanedReply },
       ]);
+
+      // autoscroll after new message
+      requestAnimationFrame(() => {
+        listRef.current?.scrollToEnd({ animated: true });
+      });
+
       await speakWithGoogleTTS(cleanedReply);
     } catch (error) {
       console.error("Error:", error);
@@ -335,16 +342,6 @@ const TherapistChat = () => {
         const { sound } = await Audio.Sound.createAsync({ uri: path });
         // stores current TTS sound
         currentTTSSound = sound;
-
-        // TODO: uncomment this for TTS debugging
-        // sound.setOnPlaybackStatusUpdate((status) => {
-        //   console.log(
-        //     "[TTS Status]",
-        //     status,
-        //     status.isPlaying,
-        //     status.positionMillis
-        //   );
-        // });
 
         // stop loading loop when TTS is about to play
         await stopLoadingSound();
@@ -463,87 +460,95 @@ const TherapistChat = () => {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // adjust if needed
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={styles.container}>
-          {/* your full existing layout here */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              marginTop: 20,
-            }}
-          >
-            {["en", "es", "fr", "zh", "hi"].map((lang) => (
-              <TouchableOpacity
-                key={lang}
-                style={{
-                  marginHorizontal: 6,
-                  backgroundColor:
-                    selectedLanguage === lang ? "#196315" : "#E9E9EB",
-                  borderRadius: 8,
-                  padding: 4,
-                }}
-                onPress={() => setSelectedLanguage(lang)}
-              >
-                <Image
-                  source={flagIcons[lang]}
-                  style={{ width: 32, height: 20, borderRadius: 4 }}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <FlatList
-            data={messages}
-            renderItem={renderMessage}
-            keyExtractor={(_, index) => index.toString()}
-            style={styles.messageList}
-          />
-
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Type your message..."
-              multiline
-            />
+      <SafeAreaView style={styles.container}>
+        {/* language toggle row */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            marginTop: 20,
+          }}
+        >
+          {["en", "es", "fr", "zh", "hi"].map((lang) => (
             <TouchableOpacity
-              style={styles.sendButton}
-              onPress={() => sendMessage()}
-              disabled={isLoading}
+              key={lang}
+              style={{
+                marginHorizontal: 6,
+                backgroundColor:
+                  selectedLanguage === lang ? "#196315" : "#E9E9EB",
+                borderRadius: 8,
+                padding: 4,
+              }}
+              onPress={() => setSelectedLanguage(lang)}
             >
-              {isLoading ? (
-                <Text style={styles.sendButtonText}>...</Text>
-              ) : (
-                <FontAwesome name="send" size={20} color="#fff" />
-              )}
+              <Image
+                source={flagIcons[lang]}
+                style={{ width: 32, height: 20, borderRadius: 4 }}
+                resizeMode="cover"
+              />
             </TouchableOpacity>
-            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-              <TouchableOpacity
-                style={[
-                  styles.sendButton,
-                  {
-                    marginLeft: 10,
-                    backgroundColor: isRecording ? "#e74c3c" : "#2ecc71",
-                  },
-                ]}
-                onPress={isRecording ? stopRecording : startRecording}
-              >
-                <MaterialIcons name="keyboard-voice" size={24} color="#fff" />
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
-        </SafeAreaView>
-      </TouchableWithoutFeedback>
+          ))}
+        </View>
+
+        <FlatList
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(_, index) => index.toString()}
+          style={styles.messageList}
+          contentContainerStyle={{ paddingBottom: 96 }} // prevents input overlap
+          keyboardShouldPersistTaps="handled" // lets scroll/taps work during keyboard
+          ref={listRef}
+          onContentSizeChange={() =>
+            listRef.current?.scrollToEnd({ animated: true })
+          }
+          onLayout={() => listRef.current?.scrollToEnd({ animated: false })}
+        />
+
+        {/* input row */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={inputText}
+            onChangeText={setInputText}
+            placeholder="Type your message..."
+            multiline
+            returnKeyType="send"
+            onSubmitEditing={() => sendMessage()}
+          />
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={() => sendMessage()}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Text style={styles.sendButtonText}>...</Text>
+            ) : (
+              <FontAwesome name="send" size={20} color="#fff" />
+            )}
+          </TouchableOpacity>
+          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                {
+                  marginLeft: 10,
+                  backgroundColor: isRecording ? "#e74c3c" : "#2ecc71",
+                },
+              ]}
+              onPress={isRecording ? stopRecording : startRecording}
+            >
+              <MaterialIcons name="keyboard-voice" size={24} color="#fff" />
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  messageList: { flex: 1, padding: 16, marginTop: 10 },
+  messageList: { flex: 1, paddingHorizontal: 16, marginTop: 10 },
   userMessage: {
     backgroundColor: "#07db78",
     alignSelf: "flex-end",

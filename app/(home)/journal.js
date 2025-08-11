@@ -29,7 +29,7 @@ const Journal = () => {
   const dropdownHeight = useRef(new Animated.Value(0)).current;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // adding some confetti for gaining wXP
+  // adding some confetti for gaining HP
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
@@ -244,7 +244,7 @@ const Journal = () => {
             />
           </Animated.View>
 
-          {showConfetti && <Text style={styles.title}>🎉 +2 wXP!</Text>}
+          {showConfetti && <Text style={styles.title}>🎉 +2 HP!</Text>}
 
           <View style={styles.editor}>
             <View style={styles.actionRow}>

@@ -20,9 +20,12 @@ export default {
           "This app uses the microphone to record your voice to talk to Koa.",
         NSSpeechRecognitionUsageDescription:
           "This app uses speech recognition to transcribe your voice to text.",
+        NSCameraUsageDescription:
+          "This app uses the camera to scan meals and estimate calories.", // 👈 added
       },
     },
     android: {
+      package: "com.koamigo.app",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
@@ -35,6 +38,7 @@ export default {
     },
     plugins: [
       "expo-router",
+      "expo-camera",
       [
         "expo-splash-screen",
         {

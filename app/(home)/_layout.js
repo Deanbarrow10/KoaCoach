@@ -18,7 +18,7 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
-        name="wellness"
+        name="fitness"
         options={{
           title: "Explore",
           tabBarIcon: ({ color, size }) => (
@@ -56,9 +56,18 @@ export default function Layout() {
       <Tabs.Screen
         name="XPPage"
         options={{
-          title: "wXP",
+          title: "HP",
           tabBarIcon: ({ color, size }) => (
             <FontAwesome6 name="leaf" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="calories"
+        options={{
+          title: "Calories",
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome6 name="utensils" color={color} size={size} />
           ),
         }}
       />
